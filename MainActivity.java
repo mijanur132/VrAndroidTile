@@ -44,15 +44,14 @@ public class MainActivity extends AppCompatActivity {
     int chunk2display=1;
     volatile int yes2DL=0;
     volatile int yes2PL=0;
-    volatile int dlFinished=0;
-    volatile int totalDlChunk=0;
     volatile int totalPlChunk=0;
     long   chunk2loadFile=1L;
     volatile int pan=0;
-    volatile  int dlChunkPan=0;
-    volatile  int dlChunkPan1=0;
     volatile int lastChunkReqPan=0;
     volatile int totalPan=0;
+
+    volatile  int totalReqTiles=0;
+    volatile int totalDlTiles=0;
 
     private static final String TAG = "OCVSample::Activity";
     private BaseLoaderCallback _baseLoaderCallback = new BaseLoaderCallback(this) {
@@ -121,21 +120,19 @@ public class MainActivity extends AppCompatActivity {
             Long addr= param[0];
             long x=param[1];
             long p=param[2];
-           // int pan=(int)p;
             int chunk2load=(int)x;
             while(true)
             {
                 if(yes2DL==1)
                 {
-                    String videoPath=downloadFileHttp(chunk2load, totalPan);
+                    System.out.println("doInBackground: dl ordered for chunk................................................................"+chunk2load);
+                    downloadFileHttp(chunk2load, totalPan);
                     int xx=pan;
                    // dlFinished=loadVideoFromDevice(addr, videoPath, chunk2load);
-                    System.out.println("dl finished.total DL:..................................................................."+chunk2load);
-                    totalDlChunk=totalDlChunk+1;
+                    System.out.println("doInBackground: dl finished for chunk:..................................................................."+chunk2load);
                     yes2DL=0;
                     yes2PL=1;
                     chunk2load=chunk2load+1;
-                   dlChunkPan1=dlChunkPan;
                 }
             }
 
@@ -155,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
 
                     yes2DL=1;
                     dlThread();
-                    while(totalPlChunk>=totalDlChunk)//totalDlChunk<=totalPlChunk
-                    {  }
+//                    while(totalReqTiles>=totalDlTiles)//totalDlChunk<=totalPlChunk
+//                    {  }
                     playThread();
 
 
@@ -182,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     public void playThread()
     {
 
-        System.out.println("here..");
+        System.out.println("function: playThread..");
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable(){
             Long start = System.currentTimeMillis();
@@ -222,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                         Long current = System.currentTimeMillis();
                         long playTime=current-start;
                         long i=0;
-                        while(playTime<20)
+                        while(playTime<20000)
                         {   current = System.currentTimeMillis();
                             playTime=current-start;
 
@@ -237,13 +234,13 @@ public class MainActivity extends AppCompatActivity {
                         int cameraPan=totalPan-dlChunkPan1xx;
 
 
-                        CoREoperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, cameraPan,dlChunkPan1xx ); // ia increaseas and one after another frame comses out
+                        TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, cameraPan); // ia increaseas and one after another frame comses out
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(m1, bm);
 
                         iv.setImageBitmap(bm);
                         handler.postDelayed(this, 1);
-                        if (ia==119)
+                        if (ia==29)
                         {
                             chunk2display=chunk2display+1;
                             totalPlChunk=totalPlChunk+1;
@@ -256,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
 
                         }
 
-                        if (ia==60)
+                        if (ia==5)
                         {
                             yes2DL=1;
                             yes2PL=0;
@@ -268,14 +265,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public String downloadFileHttp(int chunkN, int pan)
+    public void downloadFileHttp(int chunkN, int pan)
     {
         String fPath="";
         try
         {
             int [] tilesArr;
             tilesArr=new int[24];
-            getTilesNumber2req(tilesArr, pan);
+            getTilesNumber2req(tilesArr, pan, chunkN);
             String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
 
             for (int i=0; i<24; i++)
@@ -283,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                 if (tilesArr[i]==1)
                 {
 
-                        //String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/tilt0/";
+                       // String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/tilt0/";
                         String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi"+".mp4";
                         URL url = new URL(name);
                         System.out.println("requested file name................................>>>"+ name);
@@ -314,8 +311,9 @@ public class MainActivity extends AppCompatActivity {
                             outStream.close();
                             inStream.close();
                         }
-                        System.out.println("dl finished.total DL:..................................................................."+fPath);
+                        System.out.println("dl finished.total DL:..................................................................."+fPath+ i);
                         loadVideoFromDevice(fPath, chunkN, i);
+
 
                 }
             }
@@ -332,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
             System.exit(1);
         }
 
-        return fPath;
+
     }
 //
 //    public String getFileName2Req(String srcBaseAddr, int chunkN, int pan)
@@ -351,8 +349,8 @@ public class MainActivity extends AppCompatActivity {
 //        return srcBaseAddr;
 //    }
 
-    public native int  getTilesNumber2req(int tilesArr[], int pan);
+    public native int  getTilesNumber2req(int tilesArr[], int pan, int chunkN);
     public native void initCoREparameters();
     public native int loadVideoFromDevice(String videoPath, int chunkN, int tileN);
-    public native void CoREoperationPerFrame(long addr, int fi, int chunkN, int cameraPan, int baseAngle);
+    public native void TileOperationPerFrame(long addr, int fi, int chunkN, int cameraPan);
 }

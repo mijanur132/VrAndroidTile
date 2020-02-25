@@ -47,6 +47,8 @@ public:
 	void atanvalue();
 	void xz2LatMap();
 	void xz2LonMap();
+	int ERI2Conv4tiles(cv::Mat &output_image_mat, vector<vector<vector <cv::Mat>>> & frameQvecTiles, vector <int> & reqTiles, int chunkN, int fi, int pan);
+
 };
 
 

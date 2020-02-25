@@ -20,7 +20,7 @@ M33 M_Inv;
 float corePredictionMargin = 1;
 Mat convPixels( 512*corePredictionMargin,960*corePredictionMargin, CV_8UC3);
 
-void CoRE_operation_per_frame(Mat & frame, int pan, int baseAngle)
+void Tile_operation_per_frame(Mat & frame, vector<vector<vector <cv::Mat>>> & frameQvecTiles, vector <int>& reqTiles, int pan, int chunkN, int fi)
 {
 	Path path1;
 	Mat ret1;
@@ -32,13 +32,11 @@ void CoRE_operation_per_frame(Mat & frame, int pan, int baseAngle)
 	int compressionFactor = 5;
 	int w = frameLen * hfov / 360;
 	int h = frameWidth * hfov / 360;
-	PPC camera2(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
-   // camera2.Tilt(10);
-	camera2.Pan(pan);
-
-	PPC refCam(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
-	path1.CRERI2convOptimized(frame,  convPixels, camera2,1, baseAngle);
+    Mat convPixels( 512*corePredictionMargin,960*corePredictionMargin, CV_8UC3);
+    ERI eri(frameLen, frameWidth);
+	eri.ERI2Conv4tiles(convPixels, frameQvecTiles, reqTiles, chunkN, fi, pan);
 	frame=convPixels.clone(); //xxOpt: convpixels declare once at ERI
+    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d: %d", chunkN, reqTiles.size(), reqTiles[2]);
 
 }
 

@@ -6,6 +6,7 @@
 #include <C:\opencv\build\include\opencv2\opencv.hpp>
 #include <C:\opencv\build\include\opencv2\core\core.hpp>
 #include <C:\opencv\build\include\opencv2\highgui\highgui.hpp>
+#include <android/log.h>
 
 
 using namespace cv;
@@ -474,4 +475,76 @@ void ERI::xz2LonMap()
 	cout << "xz2lonmap..............................." << endl;
 
 }
-				
+
+int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& frameQvecTiles, vector <int>& reqTiles,  int chunkN, int fi, int pan)
+{
+    int pixelI, pixelJ = 0;
+    int tileColLen = 640;
+    int tileRowLen = 512;
+    int totalInSide = 0;
+	int frameLen = 3840;
+	int frameWidth = 2048;
+	float hfov = 90.0f;
+	float corePredictionMargin = 1;
+	int compressionFactor = 5;
+	int w = frameLen * hfov / 360;
+	int h = frameWidth * hfov / 360;
+	int m=6;
+    Mat temp=Mat::zeros(512, 960, CV_8UC3);
+	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
+	camera1.Pan(pan);
+    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
+    Mat mx;
+
+    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d", reqTiles.size());
+
+    for (int v = 0; v < camera1.h; v++)
+    {
+        for (int u = 0; u < camera1.w; u++)
+        {
+            EachPixelConv2ERI(camera1, u, v, pixelI, pixelJ);
+
+            int Xtile = floor(pixelJ / tileColLen); //m*n col and row
+            int Ytile = floor(pixelI / tileRowLen);
+            int tileIndex = (Ytile)*m + Xtile;
+
+//			for (int i = 0; i < reqTiles.size(); i++) {
+//				__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d,%d",reqTiles[i],tileIndex);
+//			}
+            for (int i = 0; i < reqTiles.size(); i++)
+            {
+                if (tileIndex == reqTiles[i])
+                {
+                    //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d,%d,%d,%d", u,v,pixelI, pixelJ);
+                    int newI = pixelI - Ytile * tileRowLen;
+                    int newJ = pixelJ - (Xtile)*tileColLen;
+					output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[reqTiles[i]][chunkN][fi].at<Vec3b>(newI, newJ);
+                  //  temp.at<cv::Vec3b>(v, u) = frameQvecTiles[8][1][1].at<cv::Vec3b>(v, u);
+                }
+            }
+        }
+    }
+
+
+//    for (int v = 0; v < camera1.h; v++)
+//    {
+//        for (int u = 0; u < camera1.w; u++)
+//        {
+//            temp.at<cv::Vec3b>(v, u) = frameQvecTiles[8][1][1].at<cv::Vec3b>(v, u);
+//
+//
+//        }
+//    }
+
+    //output_image_mat = temp.clone();
+    for (int i = 1; i < reqTiles.size(); i++)
+    {	if (chunkN>1)
+        {
+            frameQvecTiles[reqTiles[i]][chunkN-1][fi] = mx;
+        }
+    }
+
+
+    return 0;
+}
+
