@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
     volatile int pan=0;
     volatile int lastChunkReqPan=0;
     volatile int totalPan=0;
-
-    volatile  int totalReqTiles=0;
+    volatile long startTotal=0;
+    volatile  int totalReqTiles=-1;
     volatile int totalDlTiles=0;
 
     private static final String TAG = "OCVSample::Activity";
@@ -149,12 +149,12 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     initCoREparameters();
                     System.out.println("CoRE param updated..........................................>>>>");
-
+                    startTotal = System.currentTimeMillis();
                     yes2DL=1;
                     dlThread();
-//                    while(totalReqTiles>=totalDlTiles)//totalDlChunk<=totalPlChunk
-//                    {  }
+
                     playThread();
+
 
 
                 } else {
@@ -187,10 +187,15 @@ public class MainActivity extends AppCompatActivity {
             Mat m1=new Mat();
             Long FirstStart = System.currentTimeMillis();
             int dlChunkPan1xx=0;
+            int timeCond=20;
             public void run()
                     {
                         int lastPan=0;
-
+                       // System.out.println("dl req:..................................................................."+totalDlTiles+ totalReqTiles);
+//                        while(totalDlTiles!=totalReqTiles)
+//                        {
+//                            //System.out.println("dl req:..................................................................."+totalDlTiles+ totalReqTiles);
+//                        }
                         ImageView iv = (ImageView) findViewById(R.id.imageView);
                         iv.invalidate();
                         Bitmap bm;
@@ -219,7 +224,20 @@ public class MainActivity extends AppCompatActivity {
                         Long current = System.currentTimeMillis();
                         long playTime=current-start;
                         long i=0;
-                        while(playTime<20000)
+                        if (chunk2display==59)
+                        {
+                            Long endTotal = System.currentTimeMillis();
+                            Long totalPlay=endTotal-startTotal;
+                           // System.out.println("Total chunk: dl req and total Time:..................................................................."+totalDlTiles+";" +totalReqTiles+";" +totalPlay);
+                            System.exit(0);
+                        }
+                        if (chunk2display==1 && ia==0)
+                        {
+                            timeCond=20000;
+                        }
+                        else{timeCond=2;}
+
+                        while(playTime<timeCond)
                         {   current = System.currentTimeMillis();
                             playTime=current-start;
 
@@ -247,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                             while(yes2PL==0)
                             {
                             }
-                            System.out.println("ended...............................................................................................................");
+                            System.out.println("ended..............................................................................................................."+(chunk2display-1));
                             ia=-1;
 
 
@@ -273,12 +291,13 @@ public class MainActivity extends AppCompatActivity {
             int [] tilesArr;
             tilesArr=new int[24];
             getTilesNumber2req(tilesArr, pan, chunkN);
-            String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
+            //String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
+            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_rhino_1min.avi";
 
             for (int i=0; i<24; i++)
             {
                 if (tilesArr[i]==1)
-                {
+                {       totalReqTiles=totalReqTiles+1;
 
                        // String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/tilt0/";
                         String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi"+".mp4";
@@ -289,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
                         ucon.setConnectTimeout(100000);
                         InputStream is = ucon.getInputStream();
                         BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                        File file = new File("/storage/emulated/0/Download/30_diving_1min.avi_" + chunkN+"_"+i+".avi.mp4");
+                        File file = new File("/storage/emulated/0/Download/30_rhino_1min.avi_" + chunkN+"_"+i+".avi.mp4");
                         fPath=file.getPath();
 
                         //fPath=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+ "30_diving_1min.avi_1_15.avi";
@@ -313,10 +332,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                         System.out.println("dl finished.total DL:..................................................................."+fPath+ i);
                         loadVideoFromDevice(fPath, chunkN, i);
+                    totalDlTiles=totalDlTiles+1;
 
 
                 }
             }
+
+            totalDlTiles=totalDlTiles+1;
 
         }
 
@@ -332,22 +354,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-//
-//    public String getFileName2Req(String srcBaseAddr, int chunkN, int pan)
-//    {
-//        int [] tilesArr;
-//        tilesArr=new int[24];
-//        getTilesNumber2req(tilesArr, pan);
-//        for (int i=0; i<24; i++)
-//        {
-//            if (tilesArr[i]==0)
-//            {
-//                System.out.println("array......."+srcBaseAddr+"_" +chunkN+"_"+tilesArr[i]+".avi");
-//            }
-//        }
-//        //System.out.println("array.......>>>"+tilesArr[0]+tilesArr[4]+tilesArr[8]+tilesArr[12]);
-//        return srcBaseAddr;
-//    }
 
     public native int  getTilesNumber2req(int tilesArr[], int pan, int chunkN);
     public native void initCoREparameters();

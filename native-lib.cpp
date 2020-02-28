@@ -99,7 +99,7 @@ JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_TileOperationPe
     Mat* pMatGr=(Mat*)addr;
     *pMatGr=Mat::zeros(512,960, CV_8UC3);
 
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..................................................................................looping fi=%d, chunkN=%d, reqTiles=%d>> ", fi, chunkN, reqTiles[chunkN][1]);
+  //  __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..................................................................................looping fi=%d, chunkN=%d, reqTiles=%d>> ", fi, chunkN, reqTiles[chunkN].size());
 //
 //   if(frameQvecTiles[8][1][1].cols>=10)
 //   {

@@ -493,10 +493,10 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
     Mat temp=Mat::zeros(512, 960, CV_8UC3);
 	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera1.Pan(pan);
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
+   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
     Mat mx;
 
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d", reqTiles.size());
+   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d", reqTiles.size());
 
     for (int v = 0; v < camera1.h; v++)
     {
@@ -508,9 +508,7 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
             int Ytile = floor(pixelI / tileRowLen);
             int tileIndex = (Ytile)*m + Xtile;
 
-//			for (int i = 0; i < reqTiles.size(); i++) {
-//				__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d,%d",reqTiles[i],tileIndex);
-//			}
+
             for (int i = 0; i < reqTiles.size(); i++)
             {
                 if (tileIndex == reqTiles[i])
@@ -526,15 +524,6 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
     }
 
 
-//    for (int v = 0; v < camera1.h; v++)
-//    {
-//        for (int u = 0; u < camera1.w; u++)
-//        {
-//            temp.at<cv::Vec3b>(v, u) = frameQvecTiles[8][1][1].at<cv::Vec3b>(v, u);
-//
-//
-//        }
-//    }
 
     //output_image_mat = temp.clone();
     for (int i = 1; i < reqTiles.size(); i++)

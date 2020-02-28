@@ -36,7 +36,7 @@ void Tile_operation_per_frame(Mat & frame, vector<vector<vector <cv::Mat>>> & fr
     ERI eri(frameLen, frameWidth);
 	eri.ERI2Conv4tiles(convPixels, frameQvecTiles, reqTiles, chunkN, fi, pan);
 	frame=convPixels.clone(); //xxOpt: convpixels declare once at ERI
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d: %d", chunkN, reqTiles.size(), reqTiles[2]);
+   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d: %d", chunkN, reqTiles.size(), reqTiles[2]);
 
 }
 
@@ -46,10 +46,13 @@ void getTilesNumber2reqFov(int tileBitMap[], int pan)
     int tileRowN=4;
     int frameCol=3840;
     int frameRow=2048;
-    int hfov=90;
-    int w = frameCol * hfov / 360;
-    int h = frameRow * hfov / 360;
-    int corePredictionMargin=1;
+
+    float FoV2Mul=1.5;
+    float hfov=90*FoV2Mul;
+    float w = frameCol * hfov / 360;
+    float h = frameRow * hfov / 360;
+   // int h = frameRow * 90 / 360;
+    float corePredictionMargin=1;
     ERI eri(frameCol, frameRow);
     PPC camera(hfov * corePredictionMargin, w * corePredictionMargin, h * corePredictionMargin);
     camera.Pan(pan);
