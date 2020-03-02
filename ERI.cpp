@@ -163,46 +163,50 @@ int ERI:: EachPixelConv2ERI(PPC camera1, int u, int v, int &pixelI, int &pixelJ)
 {
 	
 	V3 p = camera1.GetUnitRay(0.5f + u, 0.5f + v);	//this focul length needs to go way	
-	//p = p.UnitVector();
-	pixelI = Lat2PixI(GetXYZ2Latitude(p));
-	pixelJ = Lon2PixJ(GetXYZ2Longitude(p));
-
+	p = p.UnitVector();
+//    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..........................................................................V3=%f,%f,%f",p[0],p[1],p[2]);
+	//pixelI = Lat2PixI(GetXYZ2Latitude(p));
+	//pixelJ = Lon2PixJ(GetXYZ2Longitude(p));
+    pixelI = GetXYZ2LatitudeOptimized(p[1]);
+    pixelJ = GetXYZ2LongitudeOptimized(p);
+    //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..........................................................................I=%d, J=%d",pixelI, pixelJ);
 	return 0;
 }
 
-int ERI::EachPixelConv2ERItemp(PPC camera1, int u, int v, int &pixelI, int &pixelJ)
-{
-	//
-	float hfov = 110.0f;
-	float corePredictionMargin = 1.2;
-	int w = 1168;
-	int h = 657;
-	PPC camera(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
-	camera.Pan(50.0f);
-	camera.Tilt(10.0f);
-
-	// build local coordinate system of RERI
-	V3 xaxis = camera.a.UnitVector();
-	V3 yaxis = camera.b.UnitVector()*-1.0f;
-	V3 zaxis = xaxis ^ yaxis;
-	M33 reriCS;
-	reriCS[0] = xaxis;
-	reriCS[1] = yaxis;
-	reriCS[2] = zaxis;
-
-
-	//
-
-	V3 p = camera1.GetUnitRay(0.5f + u, 0.5f + v);	//this focul length needs to go way	
-	//p = p.UnitVector();
-	p = reriCS * p;
-	pixelI = Lat2PixI(GetXYZ2Latitude(p));
-	pixelJ = Lon2PixJ(GetXYZ2Longitude(p));
-
-	return 0;
-}
-
-
+//int ERI::EachPixelConv2ERItemp(PPC camera1, int u, int v, int &pixelI, int &pixelJ)
+//{
+//	//
+//	float hfov = 110.0f;
+//	float corePredictionMargin = 1.2;
+//	int w = 1168;
+//	int h = 657;
+//	PPC camera(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
+//	camera.Pan(50.0f);
+//	camera.Tilt(10.0f);
+//
+//	// build local coordinate system of RERI
+//	V3 xaxis = camera.a.UnitVector();
+//	V3 yaxis = camera.b.UnitVector()*-1.0f;
+//	V3 zaxis = xaxis ^ yaxis;
+//	M33 reriCS;
+//	reriCS[0] = xaxis;
+//	reriCS[1] = yaxis;
+//	reriCS[2] = zaxis;
+//
+//
+//	//
+//
+//	V3 p = camera1.GetUnitRay(0.5f + u, 0.5f + v);	//this focul length needs to go way
+//	//p = p.UnitVector();
+//
+//	p = reriCS * p;
+//	pixelI = Lat2PixI(GetXYZ2Latitude(p));
+//	pixelJ = Lon2PixJ(GetXYZ2Longitude(p));
+//
+//	return 0;
+//}
+//
+//
 
 
 int ERI::ERI2Conv(Mat &source_image_mat, Mat &output_image_mat, PPC camera1)
@@ -226,24 +230,24 @@ int ERI::ERI2Conv(Mat &source_image_mat, Mat &output_image_mat, PPC camera1)
 
 
 
-int ERI::ERI2Convtemp(Mat &source_image_mat, Mat &output_image_mat, PPC camera1)
-{
-	int pixelI, pixelJ = 0;
-
-	for (int v = 0; v < camera1.h; v++)
-	{
-		for (int u = 0; u < camera1.w; u++)
-		{
-
-			EachPixelConv2ERItemp(camera1, u, v, pixelI, pixelJ);
-			output_image_mat.at<cv::Vec3b>(v, u) = source_image_mat.at<cv::Vec3b>(pixelI, pixelJ);
-
-		}
-	}
-
-
-	return 0;
-}
+//int ERI::ERI2Convtemp(Mat &source_image_mat, Mat &output_image_mat, PPC camera1)
+//{
+//	int pixelI, pixelJ = 0;
+//
+//	for (int v = 0; v < camera1.h; v++)
+//	{
+//		for (int u = 0; u < camera1.w; u++)
+//		{
+//
+//			EachPixelConv2ERItemp(camera1, u, v, pixelI, pixelJ);
+//			output_image_mat.at<cv::Vec3b>(v, u) = source_image_mat.at<cv::Vec3b>(pixelI, pixelJ);
+//
+//		}
+//	}
+//
+//
+//	return 0;
+//}
 
 int ERI::ERI2ConvDrawBorderinERI(Mat &output_image_mat, PPC _camera1, Vec3b insidecolor)
 {
@@ -414,9 +418,10 @@ float ERI::GetXYZ2LongitudeOptimized(V3 p)
 {
     float x = p[0];
     float z = p[2];
-    int m = x * 1000 + 1000;
-    int n = z * 1000 + 1000;
+    int m = x * 1000.0f + 1000;
+    int n = z * 1000.0f + 1000;
     float lon = xz2lonmap[m][n];
+   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ".........................................................................m=%d, n=%d, value=%f",m,n,lon);
     return lon;
 }
 
@@ -478,6 +483,7 @@ void ERI::xz2LonMap()
 
 int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& frameQvecTiles, vector <int>& reqTiles,  int chunkN, int fi, int pan)
 {
+    float margin=0.6;
     int pixelI, pixelJ = 0;
     int tileColLen = 640;
     int tileRowLen = 512;
@@ -487,16 +493,13 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
 	float hfov = 90.0f;
 	float corePredictionMargin = 1;
 	int compressionFactor = 5;
-	int w = frameLen * hfov / 360;
-	int h = frameWidth * hfov / 360;
+	int w = frameLen * hfov*0.6 / 360;
+	int h = frameWidth * hfov*0.6 / 360;
 	int m=6;
-    Mat temp=Mat::zeros(512, 960, CV_8UC3);
 	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera1.Pan(pan);
    // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
     Mat mx;
-
-   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d", reqTiles.size());
 
     for (int v = 0; v < camera1.h; v++)
     {
@@ -517,15 +520,12 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
                     int newI = pixelI - Ytile * tileRowLen;
                     int newJ = pixelJ - (Xtile)*tileColLen;
 					output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[reqTiles[i]][chunkN][fi].at<Vec3b>(newI, newJ);
-                  //  temp.at<cv::Vec3b>(v, u) = frameQvecTiles[8][1][1].at<cv::Vec3b>(v, u);
                 }
             }
         }
     }
 
 
-
-    //output_image_mat = temp.clone();
     for (int i = 1; i < reqTiles.size(); i++)
     {	if (chunkN>1)
         {

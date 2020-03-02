@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                         {
                             Long endTotal = System.currentTimeMillis();
                             Long totalPlay=endTotal-startTotal;
-                           // System.out.println("Total chunk: dl req and total Time:..................................................................."+totalDlTiles+";" +totalReqTiles+";" +totalPlay);
+                            System.out.println("Total chunk: dl req and total Time:..................................................................."+totalDlTiles+";" +totalReqTiles+";" +totalPlay);
                             System.exit(0);
                         }
                         if (chunk2display==1 && ia==0)
@@ -291,8 +291,8 @@ public class MainActivity extends AppCompatActivity {
             int [] tilesArr;
             tilesArr=new int[24];
             getTilesNumber2req(tilesArr, pan, chunkN);
-            //String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
-            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_rhino_1min.avi";
+           // String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
+            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
 
             for (int i=0; i<24; i++)
             {
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
                         ucon.setConnectTimeout(100000);
                         InputStream is = ucon.getInputStream();
                         BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                        File file = new File("/storage/emulated/0/Download/30_rhino_1min.avi_" + chunkN+"_"+i+".avi.mp4");
+                        File file = new File("/storage/emulated/0/Download/30_diving_1min.avi_" + chunkN+"_"+i+".avi.mp4");
                         fPath=file.getPath();
 
                         //fPath=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+ "30_diving_1min.avi_1_15.avi";

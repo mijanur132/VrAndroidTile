@@ -27,12 +27,13 @@ void Tile_operation_per_frame(Mat & frame, vector<vector<vector <cv::Mat>>> & fr
 	vector<float> tstamps;
 	int frameLen = 3840;
 	int frameWidth = 2048;
+	float margin=0.6;
 	float hfov = 90.0f;
 
 	int compressionFactor = 5;
-	int w = frameLen * hfov / 360;
-	int h = frameWidth * hfov / 360;
-    Mat convPixels( 512*corePredictionMargin,960*corePredictionMargin, CV_8UC3);
+	int w = frameLen * hfov*0.6 / 360;
+	int h = frameWidth * hfov*0.6 / 360;
+    Mat convPixels( h*corePredictionMargin,w*corePredictionMargin, CV_8UC3);
     ERI eri(frameLen, frameWidth);
 	eri.ERI2Conv4tiles(convPixels, frameQvecTiles, reqTiles, chunkN, fi, pan);
 	frame=convPixels.clone(); //xxOpt: convpixels declare once at ERI
@@ -47,7 +48,7 @@ void getTilesNumber2reqFov(int tileBitMap[], int pan)
     int frameCol=3840;
     int frameRow=2048;
 
-    float FoV2Mul=1.5;
+    float FoV2Mul=1.2;
     float hfov=90*FoV2Mul;
     float w = frameCol * hfov / 360;
     float h = frameRow * hfov / 360;

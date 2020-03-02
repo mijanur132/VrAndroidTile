@@ -97,7 +97,7 @@ extern "C"
 JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_TileOperationPerFrame(JNIEnv *env, jobject instance, jlong addr, jint fi, jint chunkN, jint cameraPan) {
 
     Mat* pMatGr=(Mat*)addr;
-    *pMatGr=Mat::zeros(512,960, CV_8UC3);
+    *pMatGr=Mat::zeros(512*0.6,960*0.6, CV_8UC3); //margin
 
   //  __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..................................................................................looping fi=%d, chunkN=%d, reqTiles=%d>> ", fi, chunkN, reqTiles[chunkN].size());
 //
@@ -152,7 +152,7 @@ JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_initCoREparamet
     eri.xz2LonMap();
     eri.xz2LatMap();
     path1.nonUniformListInit();
-    path1.mapx();
+   // path1.mapx();
     return;
 }
 }
