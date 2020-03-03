@@ -207,21 +207,6 @@ public class MainActivity extends AppCompatActivity {
                         iv.setOnTouchListener(new View.OnTouchListener(){
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
-//                                final float x = event.getX();
-//                                final float y = event.getY();
-//                                float lastXAxis = x;
-//                                float lastYAxis = y;
-//                                int add=5;
-//                                System.out.println("touch.............x:>: "+ x+" y:"+ y);
-//                                if (x>1200)
-//                                {
-//                                    totalPan=(totalPan-add);
-//                                }
-//                                else
-//                                {
-//                                    totalPan=(totalPan+add);
-//                                }
-
                                 int add=5;
                                 boolean mIsSwiping = false;
                                 switch(event.getActionMasked()) {
@@ -233,43 +218,27 @@ public class MainActivity extends AppCompatActivity {
                                     case MotionEvent.ACTION_UP:
                                         float deltaX = event.getX() - downX;
                                         float deltaY = event.getY() - downY;
-
-                                            if (deltaX > 100) {
-                                                totalPan=(totalPan+add);
-
-                                            }
-
-                                        if (deltaX <- 100) {
-                                            totalPan=(totalPan-add);
+                                        Toast.makeText(MainActivity.this, "touch.................."+deltaX+" "+deltaY, Toast.LENGTH_SHORT).show();
+                                        if (abs(deltaX) > 10)
+                                        {
+                                            int addX=(int)deltaX/40;
+                                            totalPan=(totalPan+addX);
                                         }
 
-                                        if (deltaY > 100) {
-                                            totalTilt=(totalTilt+add);
-                                        }
-
-                                        if (deltaY <- 100) {
-                                            totalTilt=(totalTilt-add);
-
+                                        if (abs(deltaY) > 10)
+                                        {
+                                            int addY=(int)deltaY/100;
+                                            totalTilt=(totalTilt+addY);
+                                            if (totalTilt>60)
+                                            {totalTilt=60;}
+                                            if (totalTilt<-60)
+                                            {totalTilt=-60;}
                                         }
                                         else {
-                                            Toast.makeText(MainActivity.this, "touch screen to rotate view", Toast.LENGTH_SHORT).show();
                                             }
-                                            System.out.println("touch.............down:>: "+ deltaX+" up:"+deltaY);
                                             return true;
                                         }
 
-
-//                                        if (Math.abs(deltaX) > 0) {
-//                                            if (deltaX >= 0) {
-//                                                totalPan=(totalPan+add);
-//                                                return true;
-//                                            } else {
-//                                                totalPan=(totalPan-add);
-//                                                return true;
-//                                            }
-//                                        }
-
-                                Toast.makeText(MainActivity.this, "touch..................", Toast.LENGTH_SHORT).show();
                                 return true;
                             }
                         });
@@ -285,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (chunk2display==1 && ia==0)
                         {
-                            timeCond=10000;
+                            timeCond=5000;
                         }
                         else{timeCond=2;}
 
@@ -332,9 +301,17 @@ public class MainActivity extends AppCompatActivity {
         {
             int [] tilesArr;
             tilesArr=new int[24];
+            if (tilt>60)
+            {
+                tilt=60;
+            }
+            if (tilt<-60)
+            {
+                tilt=-60;
+            }
             getTilesNumber2req(tilesArr, pan, tilt, chunkN);
            // String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
-            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
+            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_roller_1min.avi";
 
             for (int i=0; i<24; i++)
             {
@@ -350,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                         ucon.setConnectTimeout(100000);
                         InputStream is = ucon.getInputStream();
                         BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                        File file = new File("/storage/emulated/0/Download/30_diving_1min.avi_" + chunkN+"_"+i+".avi.mp4");
+                        File file = new File("/storage/emulated/0/Download/30_roller_1min.avi_" + chunkN+"_"+i+".avi.mp4");
                         fPath=file.getPath();
 
                         //fPath=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+ "30_diving_1min.avi_1_15.avi";
