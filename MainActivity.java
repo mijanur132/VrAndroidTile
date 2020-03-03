@@ -47,11 +47,16 @@ public class MainActivity extends AppCompatActivity {
     volatile int totalPlChunk=0;
     long   chunk2loadFile=1L;
     volatile int pan=0;
+    volatile int tilt=0;
     volatile int lastChunkReqPan=0;
+    volatile int lastChunkReqTilt=0;
     volatile int totalPan=0;
+    volatile int totalTilt=0;
     volatile long startTotal=0;
     volatile  int totalReqTiles=-1;
     volatile int totalDlTiles=0;
+    volatile float downX=0;
+    volatile float downY=0;
 
     private static final String TAG = "OCVSample::Activity";
     private BaseLoaderCallback _baseLoaderCallback = new BaseLoaderCallback(this) {
@@ -126,9 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 if(yes2DL==1)
                 {
                     System.out.println("doInBackground: dl ordered for chunk................................................................"+chunk2load);
-                    downloadFileHttp(chunk2load, totalPan);
-                    int xx=pan;
-                   // dlFinished=loadVideoFromDevice(addr, videoPath, chunk2load);
+                    downloadFileHttp(chunk2load, totalPan, totalTilt );
                     System.out.println("doInBackground: dl finished for chunk:..................................................................."+chunk2load);
                     yes2DL=0;
                     yes2PL=1;
@@ -172,7 +175,8 @@ public class MainActivity extends AppCompatActivity {
 
                 Mat m = new Mat();
                 long cameraPan = totalPan;
-                new MyTask().execute(m.getNativeObjAddr(), chunk2loadFile, cameraPan);//calling load video from device using videocapture in background
+                long cameraTilt = totalTilt;
+                new MyTask().execute(m.getNativeObjAddr(), chunk2loadFile, cameraPan, cameraTilt);//calling load video from device using videocapture in background
 
     }
 
@@ -187,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
             Mat m1=new Mat();
             Long FirstStart = System.currentTimeMillis();
             int dlChunkPan1xx=0;
+            int dlChunkTilt1xx=0;
             int timeCond=20;
             public void run()
                     {
@@ -197,25 +202,72 @@ public class MainActivity extends AppCompatActivity {
 //                            //System.out.println("dl req:..................................................................."+totalDlTiles+ totalReqTiles);
 //                        }
                         ImageView iv = (ImageView) findViewById(R.id.imageView);
-                        iv.invalidate();
+                       // iv.invalidate();
                         Bitmap bm;
                         iv.setOnTouchListener(new View.OnTouchListener(){
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
-                                final float x = event.getX();
-                                final float y = event.getY();
-                                float lastXAxis = x;
-                                float lastYAxis = y;
+//                                final float x = event.getX();
+//                                final float y = event.getY();
+//                                float lastXAxis = x;
+//                                float lastYAxis = y;
+//                                int add=5;
+//                                System.out.println("touch.............x:>: "+ x+" y:"+ y);
+//                                if (x>1200)
+//                                {
+//                                    totalPan=(totalPan-add);
+//                                }
+//                                else
+//                                {
+//                                    totalPan=(totalPan+add);
+//                                }
+
                                 int add=5;
-                                System.out.println("touch.............x:>: "+ x+" y:"+ y);
-                                if (x>1200)
-                                {
-                                    totalPan=(totalPan+add);
-                                }
-                                else
-                                {
-                                    totalPan=(totalPan-add);
-                                }
+                                boolean mIsSwiping = false;
+                                switch(event.getActionMasked()) {
+                                    case MotionEvent.ACTION_DOWN: {
+                                       downX = event.getX();
+                                       downY=event.getY();
+                                       break;
+                                    }
+                                    case MotionEvent.ACTION_UP:
+                                        float deltaX = event.getX() - downX;
+                                        float deltaY = event.getY() - downY;
+
+                                            if (deltaX > 100) {
+                                                totalPan=(totalPan+add);
+
+                                            }
+
+                                        if (deltaX <- 100) {
+                                            totalPan=(totalPan-add);
+                                        }
+
+                                        if (deltaY > 100) {
+                                            totalTilt=(totalTilt+add);
+                                        }
+
+                                        if (deltaY <- 100) {
+                                            totalTilt=(totalTilt-add);
+
+                                        }
+                                        else {
+                                            Toast.makeText(MainActivity.this, "touch screen to rotate view", Toast.LENGTH_SHORT).show();
+                                            }
+                                            System.out.println("touch.............down:>: "+ deltaX+" up:"+deltaY);
+                                            return true;
+                                        }
+
+
+//                                        if (Math.abs(deltaX) > 0) {
+//                                            if (deltaX >= 0) {
+//                                                totalPan=(totalPan+add);
+//                                                return true;
+//                                            } else {
+//                                                totalPan=(totalPan-add);
+//                                                return true;
+//                                            }
+//                                        }
 
                                 Toast.makeText(MainActivity.this, "touch..................", Toast.LENGTH_SHORT).show();
                                 return true;
@@ -233,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (chunk2display==1 && ia==0)
                         {
-                            timeCond=20000;
+                            timeCond=10000;
                         }
                         else{timeCond=2;}
 
@@ -245,17 +297,10 @@ public class MainActivity extends AppCompatActivity {
                         start=current;
                         long frameTime=current-FirstStart;
 
-                        if(ia==0)
-                            {
-                                dlChunkPan1xx=lastChunkReqPan;
-                            }
-                        int cameraPan=totalPan-dlChunkPan1xx;
-
-
-                        TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, cameraPan); // ia increaseas and one after another frame comses out
+                        TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, totalPan, totalTilt); // ia increaseas and one after another frame comses out
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(m1, bm);
-
+                        iv.setImageURI(null);
                         iv.setImageBitmap(bm);
                         handler.postDelayed(this, 1);
                         if (ia==29)
@@ -267,10 +312,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             System.out.println("ended..............................................................................................................."+(chunk2display-1));
                             ia=-1;
-
-
                         }
-
                         if (ia==5)
                         {
                             yes2DL=1;
@@ -283,14 +325,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void downloadFileHttp(int chunkN, int pan)
+    public void downloadFileHttp(int chunkN, int pan, int tilt)
     {
         String fPath="";
         try
         {
             int [] tilesArr;
             tilesArr=new int[24];
-            getTilesNumber2req(tilesArr, pan, chunkN);
+            getTilesNumber2req(tilesArr, pan, tilt, chunkN);
            // String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
             String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
 
@@ -355,8 +397,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public native int  getTilesNumber2req(int tilesArr[], int pan, int chunkN);
+    public native int  getTilesNumber2req(int tilesArr[], int pan, int tilt, int chunkN);
     public native void initCoREparameters();
     public native int loadVideoFromDevice(String videoPath, int chunkN, int tileN);
-    public native void TileOperationPerFrame(long addr, int fi, int chunkN, int cameraPan);
+    public native void TileOperationPerFrame(long addr, int fi, int chunkN, int cameraPan, int cameraTilt);
 }

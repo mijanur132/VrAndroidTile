@@ -481,7 +481,7 @@ void ERI::xz2LonMap()
 
 }
 
-int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& frameQvecTiles, vector <int>& reqTiles,  int chunkN, int fi, int pan)
+int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& frameQvecTiles, vector <int>& reqTiles,  int chunkN, int fi, int pan, int tilt)
 {
     float margin=0.6;
     int pixelI, pixelJ = 0;
@@ -498,6 +498,7 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
 	int m=6;
 	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera1.Pan(pan);
+	camera1.Tilt(tilt);
    // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
     Mat mx;
 
@@ -511,20 +512,18 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
             int Ytile = floor(pixelI / tileRowLen);
             int tileIndex = (Ytile)*m + Xtile;
 
-
             for (int i = 0; i < reqTiles.size(); i++)
             {
                 if (tileIndex == reqTiles[i])
                 {
-                    //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%d,%d,%d,%d", u,v,pixelI, pixelJ);
                     int newI = pixelI - Ytile * tileRowLen;
                     int newJ = pixelJ - (Xtile)*tileColLen;
 					output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[reqTiles[i]][chunkN][fi].at<Vec3b>(newI, newJ);
                 }
+
             }
         }
     }
-
 
     for (int i = 1; i < reqTiles.size(); i++)
     {	if (chunkN>1)
@@ -532,7 +531,6 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
             frameQvecTiles[reqTiles[i]][chunkN-1][fi] = mx;
         }
     }
-
 
     return 0;
 }

@@ -29,16 +29,14 @@ int mxChunkN=60;
 
 extern "C"
 {
-JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_getTilesNumber2req(JNIEnv *env, jobject instance, jintArray arr, jint pan, jint chunkN) {
-
-
+JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_getTilesNumber2req(JNIEnv *env, jobject instance, jintArray arr, jint pan, jint tilt, jint chunkN) {
     jint *c_array;
     jint i=0;
     c_array = env->GetIntArrayElements( arr, NULL);
     if (c_array == NULL) {
         return -1; /* exception occurred */
     }
-    getTilesNumber2reqFov(c_array,pan);
+    getTilesNumber2reqFov(c_array,pan, tilt);
     for (int i=0; i<24; i++)
     {
         if (c_array[i]==1)
@@ -94,24 +92,12 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
 
 extern "C"
 {
-JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_TileOperationPerFrame(JNIEnv *env, jobject instance, jlong addr, jint fi, jint chunkN, jint cameraPan) {
+JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_TileOperationPerFrame(JNIEnv *env, jobject instance, jlong addr, jint fi, jint chunkN, jint cameraPan, jint cameraTilt) {
 
     Mat* pMatGr=(Mat*)addr;
     *pMatGr=Mat::zeros(512*0.6,960*0.6, CV_8UC3); //margin
 
-  //  __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "..................................................................................looping fi=%d, chunkN=%d, reqTiles=%d>> ", fi, chunkN, reqTiles[chunkN].size());
-//
-//   if(frameQvecTiles[8][1][1].cols>=10)
-//   {
-//       *pMatGr=frameQvecTiles[8][1][1];
-//       __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: size len:%d: %d", frameQvecTiles[8][1][1].cols );
-//   }
-//   else
-//   {
-//       __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant load in tileoperation","tiles col: %d",frameQvecTiles[8][1][1].cols);
-//
-//   }
-    Tile_operation_per_frame(*pMatGr,frameQvecTiles, reqTiles[chunkN], cameraPan, chunkN, fi); //xxxOpt: pass fi as an input parameter instead of image vec[fi], use pMatGr as output parameter
+    Tile_operation_per_frame(*pMatGr,frameQvecTiles, reqTiles[chunkN], cameraPan, cameraTilt, chunkN, fi); //xxxOpt: pass fi as an input parameter instead of image vec[fi], use pMatGr as output parameter
 
 }
 }
