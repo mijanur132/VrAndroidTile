@@ -25,7 +25,7 @@ vector<vector <Mat>> loadedFrameVec;
 int framloaded;
 vector<vector<vector <Mat>>>frameQvecTiles;
 vector<vector <int>> reqTiles;
-int mxChunkN=60;
+int mxChunkN=120;
 
 extern "C"
 {
@@ -58,16 +58,16 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
                                                                              jobject instance,
                                                                              jstring videoPath,
                                                                              jint chunkN, jint tileN) {
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: loadVideoFromDevice");
+    //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: loadVideoFromDevice");
     jboolean iscopy;
     const char *vpath = (env)->GetStringUTFChars(videoPath, &iscopy);
-    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%s", vpath);
-   // VideoCapture cap1("/storage/emulated/0/Download/30_diving_1min.avi_1_15.avi.mp4");
+    //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%s", vpath);
     VideoCapture cap1(vpath);
     if (!cap1.isOpened()) {
+        __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileNotOpened............");
         return 0;
     }
-    for (int j = 0; j < 30; j++)
+    for (int j = 0; j < 29; j++)
     {
         Mat frame;
         cap1 >> frame;
@@ -75,13 +75,15 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
         if (!frame.empty())
         {
             frameQvecTiles[tileN][chunkN][j] = frame.clone();
-            __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: size len:%d",frameQvecTiles[tileN][chunkN][j].cols );
-            frame.release();
+            //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: size len:%d widh=%d",frameQvecTiles[tileN][chunkN][j].cols,frameQvecTiles[tileN][chunkN][j].rows );
+            //frame.release();
         }
         else
         {
-            __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant loadVideoFromDevice");
-            break;
+            Mat m( 512,640, CV_8UC3, Scalar::all(0));
+            frameQvecTiles[tileN][chunkN][j] = m;
+           // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant loadVideoFromDevice");
+            //break;
         }
     }
 
@@ -109,13 +111,16 @@ JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_initCoREparamet
     for (int i = 0; i < 24; i++)
     {
         vector<vector <Mat>> temp1;
-        for (int chunk = 0; chunk <= 120; chunk++)
+        for (int chunk = 0; chunk <= 60; chunk++)
         {
             vector <Mat> temp;
             for (int i = 0; i < 30; i++)
             {
+                //Mat m( 512,640, CV_8UC1, Scalar::all(0));
                 Mat m;
-                temp.push_back(m.clone());
+                temp.push_back(m);
+                //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "....chunk =%d, i=%d",chunk,i);
+
             }
             temp1.push_back(temp);
         }

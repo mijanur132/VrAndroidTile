@@ -384,7 +384,6 @@ void ERI::getERIPixelsCount(Mat &erivis, PPC *ppc, uint64 &totalEriPixel) {
 			
 		}
 	}
-	//cout << "Total ERI pixel=" << totaleriPixel << endl;
 
 }
 
@@ -499,7 +498,7 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
 	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera1.Pan(pan);
 	camera1.Tilt(tilt);
-   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles:%d", reqTiles.size());
+   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fi er2convTiles:%d", fi);
     Mat mx;
 
     for (int v = 0; v < camera1.h; v++)
@@ -518,20 +517,25 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
                 {
                     int newI = pixelI - Ytile * tileRowLen;
                     int newJ = pixelJ - (Xtile)*tileColLen;
+//                    if(newI<0 || newJ<0 ||newI>=tileRowLen || newJ>=tileColLen )
+//					{
+//						__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "v:%d, u:%d, newI:%d, newJ:%d", v, u, newI, newJ);
+//					}
+
 					output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[reqTiles[i]][chunkN][fi].at<Vec3b>(newI, newJ);
                 }
 
             }
         }
     }
-
+	//__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles2:%d", reqTiles.size());
     for (int i = 1; i < reqTiles.size(); i++)
     {	if (chunkN>1)
         {
             frameQvecTiles[reqTiles[i]][chunkN-1][fi] = mx;
         }
     }
-
+	//__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles3:%d", reqTiles.size());
     return 0;
 }
 

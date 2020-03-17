@@ -1,8 +1,10 @@
 package com.example.coreAndroid;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -26,8 +28,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import static android.os.Environment.getExternalStorageState;
 import static java.lang.Boolean.TRUE;
@@ -57,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     volatile int totalDlTiles=0;
     volatile float downX=0;
     volatile float downY=0;
+    volatile int mxChunk=59;
+    volatile int select=1;
+    volatile ArrayList<String> panTilt = new ArrayList<String>();
 
     private static final String TAG = "OCVSample::Activity";
     private BaseLoaderCallback _baseLoaderCallback = new BaseLoaderCallback(this) {
@@ -87,9 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-
     @Override
     public void onResume() {
         super.onResume();
@@ -102,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
     @Override
     public void onPause() {
@@ -142,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -157,9 +160,6 @@ public class MainActivity extends AppCompatActivity {
                     dlThread();
 
                     playThread();
-
-
-
                 } else {
                     // permission denied, boo! Disable the functionality that depends on this permission.
                     Toast.makeText(MainActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
@@ -172,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void dlThread()
     {
-
                 Mat m = new Mat();
                 long cameraPan = totalPan;
                 long cameraTilt = totalTilt;
@@ -182,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void playThread()
     {
-
         System.out.println("function: playThread..");
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable(){
@@ -196,11 +194,7 @@ public class MainActivity extends AppCompatActivity {
             public void run()
                     {
                         int lastPan=0;
-                       // System.out.println("dl req:..................................................................."+totalDlTiles+ totalReqTiles);
-//                        while(totalDlTiles!=totalReqTiles)
-//                        {
-//                            //System.out.println("dl req:..................................................................."+totalDlTiles+ totalReqTiles);
-//                        }
+
                         ImageView iv = (ImageView) findViewById(R.id.imageView);
                        // iv.invalidate();
                         Bitmap bm;
@@ -218,21 +212,25 @@ public class MainActivity extends AppCompatActivity {
                                     case MotionEvent.ACTION_UP:
                                         float deltaX = event.getX() - downX;
                                         float deltaY = event.getY() - downY;
-                                        Toast.makeText(MainActivity.this, "touch.................."+deltaX+" "+deltaY, Toast.LENGTH_SHORT).show();
+                                       // Toast.makeText(MainActivity.this, "touch.................."+deltaX+" "+deltaY, Toast.LENGTH_SHORT).show();
                                         if (abs(deltaX) > 10)
                                         {
                                             int addX=(int)deltaX/40;
                                             totalPan=(totalPan+addX);
+                                            if (totalPan>360)
+                                            {totalPan=totalPan-360;}
+                                            if (totalPan<-360)
+                                            {totalPan=totalPan+360;}
                                         }
 
                                         if (abs(deltaY) > 10)
                                         {
                                             int addY=(int)deltaY/100;
                                             totalTilt=(totalTilt+addY);
-                                            if (totalTilt>60)
-                                            {totalTilt=60;}
-                                            if (totalTilt<-60)
-                                            {totalTilt=-60;}
+                                            if (totalTilt>50)
+                                            {totalTilt=50;}
+                                            if (totalTilt<-50)
+                                            {totalTilt=-50;}
                                         }
                                         else {
                                             }
@@ -245,18 +243,66 @@ public class MainActivity extends AppCompatActivity {
                         Long current = System.currentTimeMillis();
                         long playTime=current-start;
                         long i=0;
-                        if (chunk2display==59)
+                        if (chunk2display==mxChunk)
                         {
                             Long endTotal = System.currentTimeMillis();
                             Long totalPlay=endTotal-startTotal;
                             System.out.println("Total chunk: dl req and total Time:..................................................................."+totalDlTiles+";" +totalReqTiles+";" +totalPlay);
+
+                           String url = "https://forms.gle/KpmbsmJqYjh5pwe67";   //michigan
+                            if (select==2) {
+                                url="https://forms.gle/Mkh5SkKHD1nwBHtk8";  //minne
+                            }
+                            if(select==3) {
+                                url = "https://forms.gle/vwFJq7NThP5k4QbN6";  //winsconsin
+                            }
+                            Intent ix = new Intent(Intent.ACTION_VIEW);
+                            ix.setData(Uri.parse(url));
+                            startActivity(ix);
+                            Iterator it= panTilt.iterator();
+
+                            if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                                try {
+                                        FileOutputStream fOut=
+                                                new FileOutputStream(
+                                                        new File(Environment.getExternalStoragePublicDirectory(
+                                                                Environment.DIRECTORY_DOWNLOADS), "Michigan.txt"), TRUE
+                                                );
+
+                                    if(select==2){
+                                        fOut =  new FileOutputStream(
+                                                    new File(Environment.getExternalStoragePublicDirectory(
+                                                            Environment.DIRECTORY_DOWNLOADS), "Minnesota.txt"),TRUE
+                                            );}
+                                    if(select==3) {
+                                        fOut =  new FileOutputStream(
+                                                        new File(Environment.getExternalStoragePublicDirectory(
+                                                                Environment.DIRECTORY_DOWNLOADS), "Winsconsin.txt"), TRUE
+                                                );
+                                    }
+
+
+                                    OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                                    myOutWriter.append("new user:"+"\n");
+                                    while(it.hasNext())
+                                        myOutWriter.append(it.next().toString()+"\n");
+
+                                    myOutWriter.close();
+                                    fOut.close();
+                                    Log.v("MyApp","File has been written");
+                                } catch(Exception ex) {
+                                    ex.printStackTrace();
+                                    Log.v("MyApp","File didn't write");
+                                }
+                            }
+
                             System.exit(0);
                         }
                         if (chunk2display==1 && ia==0)
                         {
                             timeCond=5000;
                         }
-                        else{timeCond=2;}
+                        else{timeCond=50;}
 
                         while(playTime<timeCond)
                         {   current = System.currentTimeMillis();
@@ -265,21 +311,22 @@ public class MainActivity extends AppCompatActivity {
                         }
                         start=current;
                         long frameTime=current-FirstStart;
-
+                        panTilt.add(totalPan+"_"+totalTilt);
+                      //  System.out.println("current frame pan and tilt..................................................................."+chunk2display+";"+ia+";"+totalPan+";" +totalTilt);
                         TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, totalPan, totalTilt); // ia increaseas and one after another frame comses out
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(m1, bm);
                         iv.setImageURI(null);
                         iv.setImageBitmap(bm);
                         handler.postDelayed(this, 1);
-                        if (ia==29)
+                        if (ia==28)
                         {
                             chunk2display=chunk2display+1;
                             totalPlChunk=totalPlChunk+1;
                             while(yes2PL==0)
                             {
                             }
-                            System.out.println("ended..............................................................................................................."+(chunk2display-1));
+
                             ia=-1;
                         }
                         if (ia==5)
@@ -301,38 +348,50 @@ public class MainActivity extends AppCompatActivity {
         {
             int [] tilesArr;
             tilesArr=new int[24];
-            if (tilt>60)
+            if (tilt>50)
             {
-                tilt=60;
+                tilt=50;
             }
-            if (tilt<-60)
+            if (tilt<-50)
             {
-                tilt=-60;
+                tilt=-50;
             }
+            if (chunkN>59)
+            {chunkN=chunkN+1;}  //temp
             getTilesNumber2req(tilesArr, pan, tilt, chunkN);
-           // String sourceBaseAddr="http://10.0.2.2:80/3vid2crf3trace/Tiles/mobisys/30_diving_1min.avi";
-            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/Tiles/mobisys/30_roller_1min.avi";
+            String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/divingT/30_diving_1min.avi";
+
+            if(select==2) {
+                sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/rhinoT/30_rhino_1min.avi";
+            }
+
+            if(select==3) {
+                sourceBaseAddr = "http://192.168.43.179:80/3vid2crf3trace/android/rollerT/30_roller_1min.avi";
+            }
 
             for (int i=0; i<24; i++)
             {
                 if (tilesArr[i]==1)
                 {       totalReqTiles=totalReqTiles+1;
-
-                       // String sourceBaseAddr="http://192.168.43.179:80/3vid2crf3trace/android/tilt0/";
-                        String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi"+".mp4";
+                        String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi";
                         URL url = new URL(name);
                         System.out.println("requested file name................................>>>"+ name);
                         URLConnection ucon = url.openConnection();
                         ucon.setReadTimeout(50000);
-                        ucon.setConnectTimeout(100000);
+                        ucon.setConnectTimeout(50000);
                         InputStream is = ucon.getInputStream();
                         BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                        File file = new File("/storage/emulated/0/Download/30_roller_1min.avi_" + chunkN+"_"+i+".avi.mp4");
-                        fPath=file.getPath();
+                        File file = new File("/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN+"_"+i+".avi");
 
-                        //fPath=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+ "30_diving_1min.avi_1_15.avi";
-                        //fPath="/storage/emulated/0/Download/diving_1_10_40.mp4";
+                        if(select==2) {
+                             file = new File("/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN+"_"+i+".avi");
+                        }
+                        if(select==3) {
+                            file = new File("/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi");
+                        }
 
+                      // fPath=file.getPath();
+                        fPath="/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
                         if (!file.exists())
                         {
 
@@ -349,20 +408,16 @@ public class MainActivity extends AppCompatActivity {
                             outStream.close();
                             inStream.close();
                         }
-                        System.out.println("dl finished.total DL:..................................................................."+fPath+ i);
+
                         loadVideoFromDevice(fPath, chunkN, i);
+                    System.out.println("Loading finished.total DL:..................................................................."+fPath+ i);
                     totalDlTiles=totalDlTiles+1;
-
-
                 }
+
             }
 
             totalDlTiles=totalDlTiles+1;
-
         }
-
-
-
 
         catch (Exception e)
         {
@@ -370,7 +425,6 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Cant save file.......>>>"+fPath);
             System.exit(1);
         }
-
 
     }
 

@@ -37,7 +37,7 @@ void Tile_operation_per_frame(Mat & frame, vector<vector<vector <cv::Mat>>> & fr
 	eri.ERI2Conv4tiles(convPixels, frameQvecTiles, reqTiles, chunkN, fi, pan, tilt);
 	frame=convPixels.clone(); //xxOpt: convpixels declare once at ERI
 
-   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d: %d", chunkN, reqTiles.size(), reqTiles[2]);
+  // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d:", chunkN, reqTiles.size());
 }
 
 void getTilesNumber2reqFov(int tileBitMap[], int pan, int tilt)
