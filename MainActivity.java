@@ -25,14 +25,19 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
+import java.util.Vector;
 
 import static android.os.Environment.getExternalStorageState;
 import static java.lang.Boolean.TRUE;
@@ -63,7 +68,17 @@ public class MainActivity extends AppCompatActivity {
     volatile float downX=0;
     volatile float downY=0;
     volatile int mxChunk=59;
-    volatile int select=1;
+    volatile int select=3;
+    volatile int touched=0;
+    volatile int maxshift=40;
+    volatile int shiftcount=0;
+    volatile int addX=0;
+    volatile int addY=0;
+    volatile  int totalFrame=0;
+
+    volatile Vector<Integer> vectorPan = new Vector<>();
+    volatile Vector<Integer> vectorTilt = new Vector<>();
+
     volatile ArrayList<String> panTilt = new ArrayList<String>();
 
     private static final String TAG = "OCVSample::Activity";
@@ -154,7 +169,50 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     initCoREparameters();
-                    System.out.println("CoRE param updated..........................................>>>>");
+
+                    File file = new File("/storage/emulated/0/OhioPan.txt");
+//            try{
+//                    BufferedReader br = new BufferedReader(new FileReader(file));
+//
+//                    String st;
+//                    while ((st = br.readLine()) != null)
+//                    {
+//                        String[] arrOfStr = st.split("_");
+//                        vectorPan.add(arrOfStr[0]);
+//                        //vectorTilt.add(Integer.valueOf(arrOfStr[1]));
+//                        System.out.println("pan+tilt............>>>>"+arrOfStr[0]+" "+arrOfStr[0]);
+//
+//                        }
+//
+//                }
+//            catch(IOException ioe){
+//                ioe.printStackTrace();
+//            }
+                    try{
+                    Scanner scanner = new Scanner(file);
+                    int [] tall = new int [100];
+                    int i = 0;
+                    while(scanner.hasNextInt())
+                    {
+                        vectorPan.add(scanner.nextInt());
+                    }
+                    }  catch(IOException ioe){
+                ioe.printStackTrace();
+            }
+                     file = new File("/storage/emulated/0/OhioTilt.txt");
+                    try{
+                        Scanner scanner = new Scanner(file);
+                        int [] tall = new int [100];
+                        int i = 0;
+                        while(scanner.hasNextInt())
+                        {
+                            vectorTilt.add(scanner.nextInt());
+                        }
+                    }  catch(IOException ioe){
+                        ioe.printStackTrace();
+                    }
+
+                System.out.println("CoRE param updated..........................................>>>>");
                     startTotal = System.currentTimeMillis();
                     yes2DL=1;
                     dlThread();
@@ -202,6 +260,8 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
                                 int add=5;
+                                touched=1;
+                                shiftcount=0;
                                 boolean mIsSwiping = false;
                                 switch(event.getActionMasked()) {
                                     case MotionEvent.ACTION_DOWN: {
@@ -213,24 +273,17 @@ public class MainActivity extends AppCompatActivity {
                                         float deltaX = event.getX() - downX;
                                         float deltaY = event.getY() - downY;
                                        // Toast.makeText(MainActivity.this, "touch.................."+deltaX+" "+deltaY, Toast.LENGTH_SHORT).show();
-                                        if (abs(deltaX) > 10)
+                                        if (abs(deltaX) > 40)
                                         {
-                                            int addX=(int)deltaX/40;
-                                            totalPan=(totalPan+addX);
-                                            if (totalPan>360)
-                                            {totalPan=totalPan-360;}
-                                            if (totalPan<-360)
-                                            {totalPan=totalPan+360;}
+                                            addX=(int)deltaX/(20*maxshift);
+
                                         }
 
-                                        if (abs(deltaY) > 10)
+                                       if (abs(deltaY) > 20)
                                         {
-                                            int addY=(int)deltaY/100;
-                                            totalTilt=(totalTilt+addY);
-                                            if (totalTilt>50)
-                                            {totalTilt=50;}
-                                            if (totalTilt<-50)
-                                            {totalTilt=-50;}
+                                            addY=(int)deltaY/(maxshift*20);
+
+
                                         }
                                         else {
                                             }
@@ -240,6 +293,23 @@ public class MainActivity extends AppCompatActivity {
                                 return true;
                             }
                         });
+//                        if (touched==1 && shiftcount<10) {
+//                            totalPan = (totalPan + addX);
+//                            if (totalPan >= 360) {
+//                                totalPan = totalPan - 360;
+//                            }
+//                            if (totalPan <= -360) {
+//                                totalPan = totalPan + 360;
+//                            }
+//
+//                            totalTilt=(totalTilt+addY);
+//                            if (totalTilt>60)
+//                            {totalTilt=60;}
+//                            if (totalTilt<-60)
+//                            {totalTilt=-60;}
+//
+//                            shiftcount=shiftcount+1;
+//                        }
                         Long current = System.currentTimeMillis();
                         long playTime=current-start;
                         long i=0;
@@ -302,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                         {
                             timeCond=5000;
                         }
-                        else{timeCond=50;}
+                        else{timeCond=80;}
 
                         while(playTime<timeCond)
                         {   current = System.currentTimeMillis();
@@ -312,6 +382,11 @@ public class MainActivity extends AppCompatActivity {
                         start=current;
                         long frameTime=current-FirstStart;
                         panTilt.add(totalPan+"_"+totalTilt);
+
+                        totalPan=vectorPan.get(totalFrame);
+                        totalTilt=vectorTilt.get(totalFrame);;
+                        totalFrame=totalFrame+1;
+                        //totalTilt=vectorTilt.get(totalFrame);
                       //  System.out.println("current frame pan and tilt..................................................................."+chunk2display+";"+ia+";"+totalPan+";" +totalTilt);
                         TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, totalPan, totalTilt); // ia increaseas and one after another frame comses out
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
@@ -319,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
                         iv.setImageURI(null);
                         iv.setImageBitmap(bm);
                         handler.postDelayed(this, 1);
-                        if (ia==28)
+                        if (ia==29)
                         {
                             chunk2display=chunk2display+1;
                             totalPlChunk=totalPlChunk+1;
@@ -348,13 +423,13 @@ public class MainActivity extends AppCompatActivity {
         {
             int [] tilesArr;
             tilesArr=new int[24];
-            if (tilt>50)
+            if (tilt>60)
             {
-                tilt=50;
+                tilt=60;
             }
-            if (tilt<-50)
+            if (tilt<-60)
             {
-                tilt=-50;
+                tilt=-60;
             }
             if (chunkN>59)
             {chunkN=chunkN+1;}  //temp
@@ -392,6 +467,14 @@ public class MainActivity extends AppCompatActivity {
 
                       // fPath=file.getPath();
                         fPath="/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
+                        if(select==2)
+                        {
+                            fPath="/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi";
+                        }
+                        if(select==3)
+                        {
+                            fPath="/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
+                        }
                         if (!file.exists())
                         {
 

@@ -67,7 +67,7 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
         __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileNotOpened............");
         return 0;
     }
-    for (int j = 0; j < 29; j++)
+    for (int j = 0; j < 30; j++)
     {
         Mat frame;
         cap1 >> frame;
@@ -80,8 +80,8 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
         }
         else
         {
-            Mat m( 512,640, CV_8UC3, Scalar::all(0));
-            frameQvecTiles[tileN][chunkN][j] = m;
+//            Mat m( 512,640, CV_8UC3, Scalar::all(0));
+//            frameQvecTiles[tileN][chunkN][j] = m;
            // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant loadVideoFromDevice");
             //break;
         }
