@@ -498,7 +498,7 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
 	PPC camera1(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera1.Pan(pan);
 	camera1.Tilt(tilt);
-   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fi er2convTiles:%d", fi);
+    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fi er2convTiles:%d", fi);
     Mat mx;
 
     for (int v = 0; v < camera1.h; v++)
@@ -510,32 +510,24 @@ int ERI::ERI2Conv4tiles(Mat& output_image_mat, vector<vector<vector <Mat>>>& fra
             int Xtile = floor(pixelJ / tileColLen); //m*n col and row
             int Ytile = floor(pixelI / tileRowLen);
             int tileIndex = (Ytile)*m + Xtile;
-
-            for (int i = 0; i < reqTiles.size(); i++)
+            int newI = pixelI - Ytile * tileRowLen;
+            int newJ = pixelJ - (Xtile)*tileColLen;
+            if(frameQvecTiles[tileIndex][chunkN][fi].cols<100)
             {
-                if (tileIndex == reqTiles[i])
-                {
-                    int newI = pixelI - Ytile * tileRowLen;
-                    int newJ = pixelJ - (Xtile)*tileColLen;
-//                    if(newI<0 || newJ<0 ||newI>=tileRowLen || newJ>=tileColLen )
-//					{
-//						__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "v:%d, u:%d, newI:%d, newJ:%d", v, u, newI, newJ);
-//					}
-
-					output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[reqTiles[i]][chunkN][fi].at<Vec3b>(newI, newJ);
-                }
-
+                __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fi frame has issue............:%d", fi);
+            }
+            else{
+            output_image_mat .at<Vec3b>(v, u) = frameQvecTiles[tileIndex][chunkN][fi].at<Vec3b>(newI, newJ);
             }
         }
     }
-	//__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles2:%d", reqTiles.size());
-    for (int i = 1; i < reqTiles.size(); i++)
+    __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fi er2convTilesEnd:%d", fi);
+    for (int i = 1; i < 24; i++)
     {	if (chunkN>1)
         {
-            frameQvecTiles[reqTiles[i]][chunkN-1][fi] = mx;
+            frameQvecTiles[i][chunkN-1][fi] = mx;
         }
     }
-	//__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "reqTiles size at er2convTiles3:%d", reqTiles.size());
     return 0;
 }
 

@@ -40,14 +40,14 @@ void Tile_operation_per_frame(Mat & frame, vector<vector<vector <cv::Mat>>> & fr
   // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: TilesOperationPerFrame-> :%d: %d:", chunkN, reqTiles.size());
 }
 
-void getTilesNumber2reqFov(int tileBitMap[], int pan, int tilt)
+void getTilesNumber2reqFov(float fovMul, int tileBitMap[], int pan, int tilt)
 {
     int tileColN=6;
     int tileRowN=4;
     int frameCol=3840;
     int frameRow=2048;
 
-    float FoV2Mul=1.2;
+    float FoV2Mul=fovMul;
     float hfov=90*FoV2Mul;
     float w = frameCol * hfov / 360;
     float h = frameRow * hfov / 360;

@@ -32,4 +32,4 @@ extern M33 M_Inv;
 
 void testrotationxyframe(cv::Mat &frame);
 void Tile_operation_per_frame(cv::Mat & frame,vector<vector<vector <cv::Mat>>> & frameQvecTiles, vector <int>& reqTiles, int cameraPan, int cameraTilt, int chunkN, int fi);
-void getTilesNumber2reqFov(int tileBitMap[], int pan, int tilt);
+void getTilesNumber2reqFov(float fovMul, int tileBitMap[], int pan, int tilt);

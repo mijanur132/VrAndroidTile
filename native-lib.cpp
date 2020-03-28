@@ -29,14 +29,14 @@ int mxChunkN=120;
 
 extern "C"
 {
-JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_getTilesNumber2req(JNIEnv *env, jobject instance, jintArray arr, jint pan, jint tilt, jint chunkN) {
+JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_getTilesNumber2req(JNIEnv *env, jobject instance, jintArray arr, jfloat fovMul, jint pan, jint tilt, jint chunkN) {
     jint *c_array;
     jint i=0;
     c_array = env->GetIntArrayElements( arr, NULL);
     if (c_array == NULL) {
         return -1; /* exception occurred */
     }
-    getTilesNumber2reqFov(c_array,pan, tilt);
+    getTilesNumber2reqFov(fovMul, c_array,pan, tilt);
     for (int i=0; i<24; i++)
     {
         if (c_array[i]==1)
@@ -69,6 +69,7 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
     }
     for (int j = 0; j < 30; j++)
     {
+        __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileOpened............");
         Mat frame;
         cap1 >> frame;
 
@@ -82,7 +83,7 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
         {
 //            Mat m( 512,640, CV_8UC3, Scalar::all(0));
 //            frameQvecTiles[tileN][chunkN][j] = m;
-           // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant loadVideoFromDevice");
+            __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "func: Cant loadVideoFromDevice");
             //break;
         }
     }
@@ -111,7 +112,7 @@ JNIEXPORT void JNICALL Java_com_example_coreAndroid_MainActivity_initCoREparamet
     for (int i = 0; i < 24; i++)
     {
         vector<vector <Mat>> temp1;
-        for (int chunk = 0; chunk <= 60; chunk++)
+        for (int chunk = 0; chunk <= mxChunkN; chunk++)
         {
             vector <Mat> temp;
             for (int i = 0; i < 30; i++)
