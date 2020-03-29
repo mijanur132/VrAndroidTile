@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     volatile float downX=0;
     volatile float downY=0;
     volatile int mxChunk=119;
-    volatile int select=3;
+    volatile int select=1;
     volatile int touched=0;
     volatile int maxshift=40;
     volatile int shiftcount=0;
@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else{timeCond=80;}
 
-                        while(totalDlTiles<24*chunk2display)
+                        while(totalDlTiles<24*(chunk2display-0)+0)
                         {   current = System.currentTimeMillis();
                             playTime=current-start;
                         }
@@ -537,45 +537,44 @@ public class MainActivity extends AppCompatActivity {
 
             for (int i=0; i<24; i++)
             {
-                totalReqTiles=totalReqTiles+1;
-                if (tilesArr[i]==1)
+                // totalReqTiles=totalReqTiles+1;
+                if (tilesArr[i] == 1)
                 {
-                    sourceBaseAddr=ip+"/3vid2crf3trace/android/divingT/30_diving_1min.avi";
+                    totalReqTiles = totalReqTiles + 1;
+                    sourceBaseAddr = ip + "/3vid2crf3trace/android/divingT/30_diving_1min.avi";
 
-                    if(select==2) {
-                        sourceBaseAddr=ip+"/3vid2crf3trace/android/rhinoT/30_rhino_1min.avi";
-                        mxChunk=89;
+                    if (select == 2) {
+                        sourceBaseAddr = ip + "/3vid2crf3trace/android/rhinoT/30_rhino_1min.avi";
+                        mxChunk = 89;
                     }
-                    if(select==3) {
-                        sourceBaseAddr = ip+"/3vid2crf3trace/android/rollerT/30_roller_1min.avi";
+                    if (select == 3) {
+                        sourceBaseAddr = ip + "/3vid2crf3trace/android/rollerT/30_roller_1min.avi";
                     }
 
-                    String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi";
+                    String name = sourceBaseAddr + "_" + chunkN + "_" + i + ".avi";
                     URL url = new URL(name);
-                    System.out.println("requested file name................................>>>"+ name);
+                    System.out.println("requested file name................................>>>" + name);
                     URLConnection ucon = url.openConnection();
                     ucon.setReadTimeout(50000);
                     ucon.setConnectTimeout(50000);
                     InputStream is = ucon.getInputStream();
                     BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                    File file = new File("/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN+"_"+i+".avi");
+                    File file = new File("/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi");
 
-                    if(select==2) {
-                        file = new File("/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN+"_"+i+".avi");
+                    if (select == 2) {
+                        file = new File("/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi");
                     }
-                    if(select==3) {
+                    if (select == 3) {
                         file = new File("/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi");
                     }
 
 
-                    fPath="/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
-                    if(select==2)
-                    {
-                        fPath="/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi";
+                    fPath = "/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
+                    if (select == 2) {
+                        fPath = "/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi";
                     }
-                    if(select==3)
-                    {
-                        fPath="/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
+                    if (select == 3) {
+                        fPath = "/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
                     }
                     if (!file.exists())
                     {
@@ -595,10 +594,17 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     loadVideoFromDevice(fPath, chunkN, i);
-                    System.out.println("Loading finished.total DL:..................................................................."+fPath+ i);
-
+                    System.out.println("Loading finished.total DL:..................................................................." + fPath + i);
+                    totalDlTiles=totalDlTiles+1;
                 }
-                else{
+
+            }
+            for (int i=0; i<24; i++)
+            {
+                // totalReqTiles=totalReqTiles+1;
+                if (tilesArr[i] == 0)
+                {
+                    totalReqTiles=totalReqTiles+1;
                     sourceBaseAddr=ip+"/3vid2crf3trace/android/divingT/45_30_diving_1min.avi";
                     if(select==2) {
                         sourceBaseAddr=ip+"/3vid2crf3trace/android/rhinoT/45_30_rhino_1min.avi";
@@ -631,7 +637,8 @@ public class MainActivity extends AppCompatActivity {
                         fPath="/storage/emulated/0/rollerT/45_30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
                     }
 
-                    if (!file.exists()) {
+                    if (!file.exists())
+                    {
                         file.createNewFile();
                         FileOutputStream outStream = new FileOutputStream(file);
                         byte[] buff = new byte[500 * 1024];
@@ -643,11 +650,13 @@ public class MainActivity extends AppCompatActivity {
                         outStream.flush();
                         outStream.close();
                         inStream.close();
-                        loadVideoFromDevice(fPath, chunkN, i);
-                        System.out.println("Loading finished in low qual.total DL:..................................................................." + fPath + i);
                     }
+                    loadVideoFromDevice(fPath, chunkN, i);
+                    System.out.println("Loading finished in low qual.total DL:..................................................................." + fPath + i);
+                    totalDlTiles=totalDlTiles+1;
+
                 }
-                totalDlTiles=totalDlTiles+1;
+               // totalDlTiles=totalDlTiles+1;
             }
 
         }
