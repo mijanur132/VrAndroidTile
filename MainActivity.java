@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
     volatile int addX=0;
     volatile int addY=0;
     volatile  int totalFrame=0;
-    volatile int record=0; //0 means trace plaly
-    volatile float fovMul=1;
+    volatile int record=0; //0 means trace play
+    volatile float fovMul=1.0f;
     //volatile String ip="http://192.168.43.179:80";
     volatile String ip="http://10.0.0.4:80";
 
@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                         {
                             timeCond=5000;
                         }
-                        else{timeCond=80;}
+                        else{timeCond=30;}
 
                         while(totalDlTiles<24*(chunk2display-0)+0)
                         {   current = System.currentTimeMillis();
@@ -392,7 +392,10 @@ public class MainActivity extends AppCompatActivity {
                             totalFrame=totalFrame+1;
                         }
                       //  System.out.println("current frame pan and tilt..................................................................."+chunk2display+";"+ia+";"+totalPan+";" +totalTilt);
+                        Long timeBefore=System.currentTimeMillis();
                         TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, totalPan, totalTilt); // ia increaseas and one after another frame comses out
+                        Long timeAfter=System.currentTimeMillis();
+                        
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(m1, bm);
                         iv.setImageURI(null);
