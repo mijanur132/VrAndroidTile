@@ -64,12 +64,12 @@ JNIEXPORT jint JNICALL Java_com_example_coreAndroid_MainActivity_loadVideoFromDe
     //__android_log_print(ANDROID_LOG_VERBOSE,"MyApp", ":%s", vpath);
     VideoCapture cap1(vpath);
     if (!cap1.isOpened()) {
-        __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileNotOpened............");
+        __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileNotOpened............", vpath);
         return 0;
     }
     for (int j = 0; j < 30; j++)
     {
-        __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileOpened............");
+       // __android_log_print(ANDROID_LOG_VERBOSE,"MyApp", "fileOpened............");
         Mat frame;
         cap1 >> frame;
 
