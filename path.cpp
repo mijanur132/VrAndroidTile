@@ -23,14 +23,14 @@ float rowMap[3850][3850];//ch
 ERI eri(3840, 2048);
 M33 reriCS;
 int predictMargin=1;
-float wee=268.9;
+float wee=268.22;
 float hett=122.3;
 
 Path::Path() {
 	print("One Path created" << endl);
 }
 
-void Path::updateReriCs(int baseAngle){
+void Path::updateReriCs(int baseAngle, int baseAngleTilt){
 	int frameLen = 3840;
 	int frameWidth = 2048;
 	float hfov = 90.0f;
@@ -40,6 +40,7 @@ void Path::updateReriCs(int baseAngle){
 	int h = frameWidth * hfov / 360;
 	PPC camera(hfov*corePredictionMargin, w*corePredictionMargin, h*corePredictionMargin);
 	camera.Pan(baseAngle);
+	camera.Tilt(baseAngleTilt);
 	V3 xaxis = camera.a.UnitVector();
 	V3 yaxis = camera.b.UnitVector()*-1.0f;
 	V3 zaxis = xaxis ^ yaxis;
@@ -234,7 +235,7 @@ void Path::mapx()
 }
 
 
-void Path::CRERI2convOptimized(Mat & CRERI, Mat & convPixels,  PPC camera1, int angle, int fi)
+void Path::CRERI2convOptimized(Mat & CRERI, Mat & convPixels,  PPC camera1, int angle, int baseAngleTilt, int fi)
 {
 	int ERI_w = 3840;
 	int ERI_h = 2048;
@@ -250,7 +251,8 @@ void Path::CRERI2convOptimized(Mat & CRERI, Mat & convPixels,  PPC camera1, int 
 	int pixelI, pixelJ = 0;
 	float prevdx = 0;
 	float currentdx = 0;
-	updateReriCs(angle);
+	if (fi==0){
+	updateReriCs(angle,baseAngleTilt);}
 	camera1.a = reriCS * camera1.a;
 	camera1.b = reriCS * camera1.b;
 	camera1.c = reriCS * camera1.c;

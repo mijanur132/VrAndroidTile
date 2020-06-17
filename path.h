@@ -19,8 +19,8 @@ public:
 	vector<int> segmentFramesN;
 	cv::Mat CRERI2Conv(cv::Mat & CRERI, int compressionfactor, PPC camera1, PPC refcam);
 	void bilinearinterpolation(cv::Mat &distortedframemat, cv::Mat &midcorrectedmat, int row, int col, float Roriginaly, float Roriginalx);
-    void CRERI2convOptimized(cv::Mat & CRERI, cv::Mat & convPixels, PPC camera1, int angle, int fi);
+    void CRERI2convOptimized(cv::Mat & CRERI, cv::Mat & convPixels, PPC camera1, int angle, int baseAngleTilt, int fi);
     void mapx();
     void nonUniformListInit();
-    void updateReriCs(int baseAngle);
+    void updateReriCs(int baseAngle, int baseAngleTilt);
 };
