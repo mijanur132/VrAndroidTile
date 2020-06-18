@@ -79,6 +79,12 @@ public class MainActivity extends AppCompatActivity {
     volatile float fovMul=1.0f;
     //volatile String ip="http://192.168.43.179:80";
     volatile String ip="http://10.0.0.4:80";
+//    volatile String fPath=" ";
+//    volatile int threadChunk=0;
+//    volatile int threadTile=0;
+    volatile  long btime=0;
+    volatile  long atime=0;
+
 
 
     volatile Vector<Integer> vectorPan = new Vector<>();
@@ -135,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class MyTask extends AsyncTask<Long, Void, Void> {
+    private class MyTask extends AsyncTask<String, Void, Void> {
 
         // Runs in UI before background thread is called
         @Override
@@ -146,25 +152,30 @@ public class MainActivity extends AppCompatActivity {
 
         // This is run in a background thread
         @Override
-        protected Void doInBackground(Long... param) {
-            Long addr= param[0];
-            long x=param[1];
-            long p=param[2];
-            int chunk2load=(int)x;
-            while(true)
-            {
-                if(yes2DL==1)
-                {
-                    System.out.println("doInBackground: dl ordered for chunk................................................................"+chunk2load);
-                    downloadFileHttp2QL360(chunk2load, totalPan, totalTilt );
-                    System.out.println("doInBackground: dl finished for chunk:..................................................................."+chunk2load);
-                    yes2DL=0;
-                    yes2PL=1;
-                    chunk2load=chunk2load+1;
-                }
-            }
+        protected Void doInBackground(String ... param) {
+            String path=param[0];
+
+            System.out.println("doInBackground: fpath................................................................"+path);
+            loadVideoFromDevice(path,1,1);
+            System.out.println("doInBackground: dl finished for chunk:..................................................................."+ path);
+
+            atime = System.currentTimeMillis();
+            long DecTime = atime - btime;
+            vectorTime.add((int) DecTime);
+            System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
+
+            return null;
 
         }
+
+        protected void onPostExecute( ) {
+//            atime = System.currentTimeMillis();
+//            long DecTime = atime - btime;
+//            vectorTime.add((int) DecTime);
+//            System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
+
+        }
+
     }
 
     @Override
@@ -220,8 +231,8 @@ public class MainActivity extends AppCompatActivity {
                     dlThread();
 
                     //playThreadOverhead();
-                    finishAndRemoveTask();
-                    System.exit(0);
+                    //finishAndRemoveTask();
+                    //System.exit(0);
                 } else {
                     // permission denied, boo! Disable the functionality that depends on this permission.
                     Toast.makeText(MainActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
@@ -240,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
                 //new MyTask().execute(m.getNativeObjAddr(), chunk2loadFile, cameraPan, cameraTilt);//calling load video from device using videocapture in background
                 System.out.println("dl thread");
                 downloadFileHttpDecodTest();
+                return;
     }
 
     public void playThreadOverhead()
@@ -444,16 +456,18 @@ public class MainActivity extends AppCompatActivity {
                     int m=0;
                     if(selectx<6)
                     {
-                        m=50;
+                        m=24;
                     }
                     else{
                         m=1;
                     }
+                    btime = System.currentTimeMillis();
                     for (int i = 0; i < m; i++)
                     {
 
-                        //fPath = "/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
-                        fPath = "/storage/emulated/0/1sChunk/45_30_30_roller.avi.avi"+"_" + i + "_0"+ ".avi.avi.avi";
+                        fPath = "/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
+
+                       // fPath = "/storage/emulated/0/1sChunk/30_30_roller.avi.avi"+"_" + i + "_0"+ ".avi.avi";
                         if (selectx == 1) {
                             fPath = "/storage/emulated/0/elephant/30_elephant.webm_" + chunkN + "_" + i + ".avi.avi";
                         }
@@ -490,14 +504,13 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         System.out.println("path: "+ fPath);
-                        long btime = System.currentTimeMillis();
-                        loadVideoFromDevice(fPath, chunkN, i);
-                        long atime = System.currentTimeMillis();
-                        long DecTime = atime - btime;
-                        vectorTime.add((int) DecTime);
-                        System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + chunkN + " " + DecTime);
+                       // long btime = System.currentTimeMillis();
+                        //loadVideoFromDevice(fPath, chunkN, i);
+                        new MyTask().execute(fPath);
 
                     }
+
+
                 }
 
 
