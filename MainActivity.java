@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     volatile float downX=0;
     volatile float downY=0;
     volatile int mxChunk=119;
-    volatile int select=1;
+    volatile int select=3;
     volatile int touched=0;
     volatile int maxshift=40;
     volatile int shiftcount=0;
@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
     volatile Vector<Integer> vectorPan = new Vector<>();
     volatile Vector<Integer> vectorTilt = new Vector<>();
+    volatile Vector<Integer> vectorTime = new Vector<>();
 
     volatile ArrayList<String> panTilt = new ArrayList<String>();
 
@@ -218,7 +219,9 @@ public class MainActivity extends AppCompatActivity {
                     yes2DL=1;
                     dlThread();
 
-                    playThread();
+                    //playThreadOverhead();
+                    finishAndRemoveTask();
+                    System.exit(0);
                 } else {
                     // permission denied, boo! Disable the functionality that depends on this permission.
                     Toast.makeText(MainActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
@@ -234,11 +237,12 @@ public class MainActivity extends AppCompatActivity {
                 Mat m = new Mat();
                 long cameraPan = totalPan;
                 long cameraTilt = totalTilt;
-                new MyTask().execute(m.getNativeObjAddr(), chunk2loadFile, cameraPan, cameraTilt);//calling load video from device using videocapture in background
-
+                //new MyTask().execute(m.getNativeObjAddr(), chunk2loadFile, cameraPan, cameraTilt);//calling load video from device using videocapture in background
+                System.out.println("dl thread");
+                downloadFileHttpDecodTest();
     }
 
-    public void playThread()
+    public void playThreadOverhead()
     {
         System.out.println("function: playThread..");
         final Handler handler = new Handler();
@@ -395,7 +399,9 @@ public class MainActivity extends AppCompatActivity {
                         Long timeBefore=System.currentTimeMillis();
                         TileOperationPerFrame(m1.getNativeObjAddr(), ia, chunk2display, totalPan, totalTilt); // ia increaseas and one after another frame comses out
                         Long timeAfter=System.currentTimeMillis();
-                        
+
+
+
                         bm = Bitmap.createBitmap(m1.cols(), m1.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(m1, bm);
                         iv.setImageURI(null);
@@ -423,99 +429,117 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void downloadFileHttp(int chunkN, int pan, int tilt)
+    public void downloadFileHttpDecodTest()
     {
+        System.out.println("downlaod..........................................>>>>");
         String fPath="";
         try
         {
-            int [] tilesArr;
-            tilesArr=new int[24];
-            if (tilt>60)
+            for(int selectx=0; selectx<1; selectx++)
             {
-                tilt=60;
-            }
-            if (tilt<-60)
-            {
-                tilt=-60;
-            }
-            if (chunkN>59)
-            {chunkN=chunkN+0;}  //temp
-            getTilesNumber2req(tilesArr, fovMul, pan, tilt, chunkN);
-            String sourceBaseAddr=ip+"/3vid2crf3trace/android/divingT/30_diving_1min.avi";
+                vectorTime.add(0);
+                System.out.println("Selectx..........................................>>>>"+ selectx);
+                for (int chunkN = 1; chunkN < 2; chunkN++)
+                {
+                    int m=0;
+                    if(selectx<6)
+                    {
+                        m=50;
+                    }
+                    else{
+                        m=1;
+                    }
+                    for (int i = 0; i < m; i++)
+                    {
 
-            if(select==2) {
-                sourceBaseAddr=ip+"/3vid2crf3trace/android/rhinoT/30_rhino_1min.avi";
-                mxChunk=89;
-
-            }
-
-            if(select==3) {
-                sourceBaseAddr = ip+"/3vid2crf3trace/android/rollerT/30_roller_1min.avi";
-            }
-
-            for (int i=0; i<24; i++)
-            {
-                if (tilesArr[i]==1)
-                {       totalReqTiles=totalReqTiles+1;
-                        String name=sourceBaseAddr+"_"+chunkN+"_"+i+".avi";
-                        URL url = new URL(name);
-                        System.out.println("requested file name................................>>>"+ name);
-                        URLConnection ucon = url.openConnection();
-                        ucon.setReadTimeout(50000);
-                        ucon.setConnectTimeout(50000);
-                        InputStream is = ucon.getInputStream();
-                        BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 500);
-                        File file = new File("/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN+"_"+i+".avi");
-
-                        if(select==2) {
-                             file = new File("/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN+"_"+i+".avi");
+                        //fPath = "/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
+                        fPath = "/storage/emulated/0/1sChunk/45_30_30_roller.avi.avi"+"_" + i + "_0"+ ".avi.avi.avi";
+                        if (selectx == 1) {
+                            fPath = "/storage/emulated/0/elephant/30_elephant.webm_" + chunkN + "_" + i + ".avi.avi";
                         }
-                        if(select==3) {
-                            file = new File("/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi");
+                        if (selectx == 2) {
+                            fPath = "/storage/emulated/0/nyT/30_ny.mkv_" + chunkN + "_" + i + ".avi.avi";
+                        }
+                        if (selectx == 3) {
+                            fPath = "/storage/emulated/0/paris/30_paris.mkv_" + chunkN + "_" + i + ".avi.avi";
+                        }
+                        if (selectx == 4) {
+                            fPath = "/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi";
+                        }
+                        if (selectx == 5) {
+                            fPath = "/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
                         }
 
-                      // fPath=file.getPath();
-                        fPath="/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
-                        if(select==2)
-                        {
-                            fPath="/storage/emulated/0/rhinoT/30_rhino_1min.avi_" + chunkN + "_" + i + ".avi";
+                        if (selectx == 6) {
+                            fPath = "/storage/emulated/0/diving/30_diving_original.mkv0_" + (chunkN+10) + "_0_0" + ".avi";
                         }
-                        if(select==3)
-                        {
-                            fPath="/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
+                        if (selectx == 7) {
+                            fPath = "/storage/emulated/0/elephant/30_elephant.webm6_" + chunkN + "_10_20" + ".avi.avi";
                         }
-                        if (!file.exists())
-                        {
-
-                            file.createNewFile();
-                            FileOutputStream outStream = new FileOutputStream(file);
-                            byte[] buff = new byte[500 * 1024];
-
-                            int len;
-                            while ((len = inStream.read(buff)) != -1) {
-                                outStream.write(buff, 0, len);
-                            }
-
-                            outStream.flush();
-                            outStream.close();
-                            inStream.close();
+                        if (selectx == 8) {
+                            fPath = "/storage/emulated/0/ny/30_ny.mkv6_" + chunkN +"_10_20" + ".avi";
+                        }
+                        if (selectx == 9) {
+                            fPath = "/storage/emulated/0/paris/30_paris.mkv6_" + chunkN + "_10_20" + ".avi.avi";
+                        }
+                        if (selectx == 10) {
+                            fPath = "/storage/emulated/0/rhino/30_rhino.webm0_" + chunkN + "_0_0" + ".avi";
+                        }
+                        if (selectx == 11) {
+                            fPath = "/storage/emulated/0/roller/30_roller.mkv0_" + chunkN + "_0_0" + ".avi";
                         }
 
+                        System.out.println("path: "+ fPath);
+                        long btime = System.currentTimeMillis();
                         loadVideoFromDevice(fPath, chunkN, i);
-                    System.out.println("Loading finished.total DL:..................................................................."+fPath+ i);
-                    totalDlTiles=totalDlTiles+1;
+                        long atime = System.currentTimeMillis();
+                        long DecTime = atime - btime;
+                        vectorTime.add((int) DecTime);
+                        System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + chunkN + " " + DecTime);
+
+                    }
                 }
 
+
             }
 
-            //totalDlTiles=totalDlTiles+1;
+
         }
+
 
         catch (Exception e)
         {
             e.printStackTrace();
             System.out.println("Cant save file.......>>>"+fPath);
             System.exit(1);
+        }
+
+
+        Iterator it= vectorTime.iterator();
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            try {
+                FileOutputStream fOut=
+                        new FileOutputStream(
+                                new File(Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DOWNLOADS), "DecodeTimeRollerWhole1s.txt"), TRUE
+                        );
+
+
+                OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                myOutWriter.append("new user:"+"\n");
+                while(it.hasNext())
+                    myOutWriter.append(it.next().toString()+"\n");
+
+                myOutWriter.close();
+                fOut.close();
+                Log.v("MyApp","File has been written");
+                System.out.println("File Has Been Written...................................................................");
+            } catch(Exception ex) {
+                ex.printStackTrace();
+                Log.v("MyApp","File didn't write");
+                System.out.println("File Has Not Been Written...................................................................");
+            }
         }
 
     }
