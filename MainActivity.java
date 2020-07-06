@@ -167,18 +167,18 @@ public class MainActivity extends AppCompatActivity {
         // This is run in a background thread
         @Override
         protected Void doInBackground(String ... param) {
-            String path=param[0];
+
             int TIMEOUT_US = -1;
             Boolean sawInputEOS = false;
             Boolean sawOutputEOS = false;
 
             String LOG_TAG = "mediadecoderexample";
-            System.out.println("doInBackground: fpath................................................................"+path);
+            System.out.println("doInBackground: fpath................................................................");
             //loadVideoFromDevice(path,1,1);
             MediaExtractor extractor = new MediaExtractor();
 
             try {
-                extractor.setDataSource(path);
+                extractor.setDataSource("/storage/emulated/0/rollerT/30_roller_1min.avi_1_1.avi");
                 System.out.println("success in extractor");
             } catch (IOException e) {
                 System.out.println("exception in extractor");
@@ -187,81 +187,86 @@ public class MainActivity extends AppCompatActivity {
             MediaFormat format = extractor.getTrackFormat(0);
             String mime = format.getString(MediaFormat.KEY_MIME);
             MediaCodec codec;
-           try {
-               codec = MediaCodec.createDecoderByType(mime);
-               System.out.println("success in codec");
-               codec.configure(format, null /* surface */, null /* crypto */, 0 /* flags */);
-               codec.start();
-               int inputBufferId = codec.dequeueInputBuffer(TIMEOUT_US);
-               int outputBufferId = codec.dequeueInputBuffer(TIMEOUT_US);
-               ByteBuffer codecInputBuffers = codec.getInputBuffer(inputBufferId);
-               ByteBuffer codecOutputBuffers = codec.getOutputBuffer(outputBufferId);
-               extractor.selectTrack(0);
+            try {
+                codec = MediaCodec.createDecoderByType(mime);
+                System.out.println("success in codec" + " " + codec + " " + mime);
+                codec.configure(format, null /* surface */, null /* crypto */, 0 /* flags */);
+                codec.start();
+                int inputBufferId = codec.dequeueInputBuffer(100000000);
 
-               int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
-               if (inputBufIndex >= 0) {
-                   ByteBuffer dstBuf = codecInputBuffers;
+                System.out.println("input output buffer Id:" + inputBufferId);
 
-                   int sampleSize = extractor.readSampleData(dstBuf, 0);
-                   long presentationTimeUs = 0;
-                   if (sampleSize < 0) {
-                       sawInputEOS = true;
-                       sampleSize = 0;
-                   } else {
-                       presentationTimeUs = extractor.getSampleTime();
-                   }
+                ByteBuffer codecInputBuffers = codec.getInputBuffer(inputBufferId);
 
-                   codec.queueInputBuffer(inputBufIndex,
-                           0, //offset
-                           sampleSize,
-                           presentationTimeUs,
-                           sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
-                   if (!sawInputEOS) {
-                       extractor.advance();
-                   }
-               }
-               MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-               final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
-               if (res >= 0) {
-                   int outputBufIndex = res;
-                   ByteBuffer buf = codecOutputBuffers;
+                extractor.selectTrack(0);
 
-                   final byte[] chunk = new byte[info.size];
-                   buf.get(chunk); // Read the buffer all at once
-                   buf.clear(); // ** MUST DO!!! OTHERWISE THE NEXT TIME YOU GET THIS SAME BUFFER BAD THINGS WILL HAPPEN
+                int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
+                if (inputBufIndex >= 0) {
+                    ByteBuffer dstBuf = codecInputBuffers;
 
-                   if (chunk.length > 0) {
+                    int sampleSize = extractor.readSampleData(dstBuf, 0);
+                    long presentationTimeUs = 0;
+                    if (sampleSize < 0) {
+                        sawInputEOS = true;
+                        sampleSize = 0;
+                    } else {
+                        presentationTimeUs = extractor.getSampleTime();
+                    }
 
-                   }
-                   codec.releaseOutputBuffer(outputBufIndex, false /* render */);
+                    codec.queueInputBuffer(inputBufIndex,
+                            0, //offset
+                            sampleSize,
+                            presentationTimeUs,
+                            sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
+                    if (!sawInputEOS) {
+                        extractor.advance();
+                    }
+                }
+                MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+                final int res = codec.dequeueOutputBuffer(info, 100);
+                if (res >= 0) {
+                    int outputBufIndex = res;
+                    ByteBuffer buf = codec.getOutputBuffer(outputBufIndex);
 
-                   if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                       sawOutputEOS = true;
-                   }
-               } //else if (res == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-               // codecOutputBuffers = codec.getOutputBuffers();
-               //} else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-               // final MediaFormat oformat = codec.getOutputFormat();
-               // Log.d(LOG_TAG, "Output format has changed to " + oformat);
+                    final byte[] chunk = new byte[info.size];
+                    buf.get(chunk); // Read the buffer all at once
+                    buf.clear(); // ** MUST DO!!! OTHERWISE THE NEXT TIME YOU GET THIS SAME BUFFER BAD THINGS WILL HAPPEN
 
-               // }
-           } catch(IOException e){ System.out.println("failure in codec");};
-            System.out.println("doInBackground: dl finished for chunk:..................................................................."+ path);
+                    if (chunk.length > 0) {
 
-            atime = System.currentTimeMillis();
-            long DecTime = atime - btime;
-            vectorTime.add((int) DecTime);
-            System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
+                    }
+                    codec.releaseOutputBuffer(outputBufIndex, false /* render */);
+                    outputBufIndex = codec.dequeueOutputBuffer(info, 0);
+                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                        sawOutputEOS = true;
+                    }
+                } else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    final MediaFormat oformat = codec.getOutputFormat();
+                    System.out.println("format change");
+                    Log.d(LOG_TAG, "Output format has changed to " + oformat);
+                }
+                //atime = System.currentTimeMillis();
+                //long DecTime = atime - btime;
+               // vectorTime.add((int) DecTime);
+               // System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
+
+                codec.stop();
+                codec.release();
+                extractor.release();
+
+            } catch (IOException e) {
+                System.out.println("failure in codec");
+            };
+
 
             return null;
-
         }
 
-        protected void onPostExecute( ) {
-//            atime = System.currentTimeMillis();
-//            long DecTime = atime - btime;
-//            vectorTime.add((int) DecTime);
-//            System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
+        protected void onPostExecute(Void unused ) {
+            atime = System.currentTimeMillis();
+            long DecTime = atime - btime;
+           // vectorTime.add((int) DecTime);
+           System.out.println("Loading finished.total Dec Time for Chunk:..................................................................."+DecTime);
 
         }
 
@@ -541,6 +546,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 for (int selectx = 0; selectx < 1; selectx++) {
                     vectorTime.add(0);
+                    btime = System.currentTimeMillis();
                     System.out.println("Selectx..........................................>>>>" + selectx);
                     int chunknN = 10;
                     if (selectx < 6) {
@@ -559,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                        // m=50; //for 1s exp
                         for (int i = 1; i < m; i++) {
-                            btime = System.currentTimeMillis();
+
 
                             //fPath = "/storage/emulated/0/divingT/30_diving_1min.avi_" + chunkN + "_" + i + ".avi";
                              fPath = "/storage/emulated/0/rollerT/30_roller_1min.avi_" + chunkN + "_" + i + ".avi";
@@ -602,99 +608,11 @@ public class MainActivity extends AppCompatActivity {
                             System.out.println("path: " + fPath);
                             // long btime = System.currentTimeMillis();
                             //loadVideoFromDevice(fPath, chunkN, i);
-                            //new MyTask().execute(fPath);
+                            new MyTask().execute(fPath);
 
-                            int TIMEOUT_US = -1;
-                            Boolean sawInputEOS = false;
-                            Boolean sawOutputEOS = false;
 
-                            String LOG_TAG = "mediadecoderexample";
-                            System.out.println("doInBackground: fpath................................................................" + fPath);
-                            //loadVideoFromDevice(path,1,1);
-                            MediaExtractor extractor = new MediaExtractor();
 
-                            try {
-                                extractor.setDataSource(fPath);
-                                System.out.println("success in extractor");
-                            } catch (IOException e) {
-                                System.out.println("exception in extractor");
-                            }
-
-                            MediaFormat format = extractor.getTrackFormat(0);
-                            String mime = format.getString(MediaFormat.KEY_MIME);
-                            MediaCodec codec;
-                            try {
-                                codec = MediaCodec.createDecoderByType(mime);
-                                System.out.println("success in codec" + " " + codec + " " + mime);
-                                codec.configure(format, null /* surface */, null /* crypto */, 0 /* flags */);
-                                codec.start();
-                                int inputBufferId = codec.dequeueInputBuffer(100000000);
-
-                                System.out.println("input output buffer Id:" + inputBufferId);
-
-                                ByteBuffer codecInputBuffers = codec.getInputBuffer(inputBufferId);
-
-                                extractor.selectTrack(0);
-
-                                int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
-                                if (inputBufIndex >= 0) {
-                                    ByteBuffer dstBuf = codecInputBuffers;
-
-                                    int sampleSize = extractor.readSampleData(dstBuf, 0);
-                                    long presentationTimeUs = 0;
-                                    if (sampleSize < 0) {
-                                        sawInputEOS = true;
-                                        sampleSize = 0;
-                                    } else {
-                                        presentationTimeUs = extractor.getSampleTime();
-                                    }
-
-                                    codec.queueInputBuffer(inputBufIndex,
-                                            0, //offset
-                                            sampleSize,
-                                            presentationTimeUs,
-                                            sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
-                                    if (!sawInputEOS) {
-                                        extractor.advance();
-                                    }
-                                }
-                                MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-                                final int res = codec.dequeueOutputBuffer(info, 100);
-                                if (res >= 0) {
-                                    int outputBufIndex = res;
-                                    ByteBuffer buf = codec.getOutputBuffer(outputBufIndex);
-
-                                    final byte[] chunk = new byte[info.size];
-                                    buf.get(chunk); // Read the buffer all at once
-                                    buf.clear(); // ** MUST DO!!! OTHERWISE THE NEXT TIME YOU GET THIS SAME BUFFER BAD THINGS WILL HAPPEN
-
-                                    if (chunk.length > 0) {
-
-                                    }
-                                    codec.releaseOutputBuffer(outputBufIndex, false /* render */);
-                                    outputBufIndex = codec.dequeueOutputBuffer(info, 0);
-                                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                                        sawOutputEOS = true;
-                                    }
-                                } else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                                    final MediaFormat oformat = codec.getOutputFormat();
-                                    System.out.println("format change");
-                                    Log.d(LOG_TAG, "Output format has changed to " + oformat);
-                                }
-                                atime = System.currentTimeMillis();
-                                long DecTime = atime - btime;
-                                vectorTime.add((int) DecTime);
-                                System.out.println("Loading finished.total Dec Time for Chunk:..................................................................." + DecTime);
-
-                                codec.stop();
-                                codec.release();
-                                extractor.release();
-
-                            } catch (IOException e) {
-                                System.out.println("failure in codec");
-                            }
-                            ;
-                            System.out.println("doInBackground: dl finished for chunk:..................................................................." + fPath);
+                            //System.out.println("doInBackground: dl finished for chunk:..................................................................." + fPath);
 
 
                         }
@@ -724,7 +642,7 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fOut=
                         new FileOutputStream(
                                 new File(Environment.getExternalStoragePublicDirectory(
-                                        Environment.DIRECTORY_DOWNLOADS), "TileRolGPU.txt"), TRUE
+                                        Environment.DIRECTORY_DOWNLOADS), "PrllTileRolGPU.txt"), TRUE
                         );
 
 
@@ -737,7 +655,7 @@ public class MainActivity extends AppCompatActivity {
                 fOut.close();
                 Log.v("MyApp","File has been written");
                 System.out.println("File Has Been Written...................................................................");
-                System.exit(1);
+                //System.exit(1);
             } catch(Exception ex) {
                 ex.printStackTrace();
                 Log.v("MyApp","File didn't write");
